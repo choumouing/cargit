@@ -1,0 +1,229 @@
+#include "zf_common_headfile.h"
+
+#define SEARCH_IMAGE_H  MT9V03X_H             // ( 120 )  
+#define SEARCH_IMAGE_W  MT9V03X_W            //   ( 188 )                                         
+
+#define REFRENCEROW      5              //参考点统计行数
+#define SEARCHRANGE     10         //搜线半径
+#define STOPROW         0        //搜线停止行
+#define CONTRASTOFFSET    3     //搜线对比偏移
+
+#define BLACKPOINT  50         //黑点值
+#define WHITEMAXMUL     13       // 白点最大值基于参考点的放大倍数10为不放大
+#define WHITEMINMUL       7        // 白点最小值基于参考点的放大倍数10为不放大
+
+uint8 reference_point=0;         //动态参考点
+uint8 reference_col=0;          //动态参考列
+uint8 white_max_point=0;        //动态白点最大值
+uint8 white_min_point=0;        //动态白点最小值
+uint8 reference_contrast_ratio=20;        //参考对比度
+uint8 reference_col_line[SEARCH_IMAGE_H] ={0};//参考列绘制
+uint8 remote_distance[SEARCH_IMAGE_W]={0};          //白点远端距离
+uint8 left_edge_line[SEARCH_IMAGE_H]={0};          //左右边界
+uint8 right_edge_line[SEARCH_IMAGE_H]={0};
+uint32 if_count=0;
+
+
+void get_reference_point(const uint8 *image)
+{
+	uint8 *p = (uint8 *)&image[(SEARCH_IMAGE_H-REFRENCEROW)* SEARCH_IMAGE_W];
+	uint16  temp = 0;                        //保存统计点总数量
+
+	uint32 templ = 0;                       //保存所有统计点加起来的和
+
+	temp = REFRENCEROW* SEARCH_IMAGE_W;      //计算待统计点总数量
+
+	for(int i = 0; i<temp; i ++)         //统计点求和
+	{
+		templ += * (p + i);
+	}
+
+	reference_point = (uint8) (templ / temp);          //计算点平均值，作为本幅图像的参考点
+	white_max_point=reference_point*WHITEMAXMUL/10;
+	if(white_max_point>255)white_max_point=255;
+	if(white_max_point<BLACKPOINT)white_max_point=BLACKPOINT;
+	white_min_point=reference_point*WHITEMINMUL/10;	
+	if(white_min_point>255)white_max_point=255;
+	if(white_min_point<BLACKPOINT)white_max_point=BLACKPOINT;	
+
+}
+
+void search_reference_col(const uint8 *image)
+{
+	int col,row;
+	int16 temp1=0,temp2=0,temp3=0;
+	
+	for(col=0;col<SEARCH_IMAGE_W;col++)
+	{
+		remote_distance[col]=SEARCH_IMAGE_H-1;
+	}
+	
+	
+	for(col = 0; col <SEARCH_IMAGE_W; col += CONTRASTOFFSET)
+	{
+		for(row = SEARCH_IMAGE_H - 1; row > STOPROW; row -= CONTRASTOFFSET)
+		{
+			temp1 = *(image + row *SEARCH_IMAGE_W + col);
+			temp2 = *(image + (row - STOPROW) * SEARCH_IMAGE_W + col);
+			if(temp2 > white_max_point)continue;
+			if(temp1 < white_min_point)
+			{
+				remote_distance[col] = (uint8)row;
+				break;
+			}
+			temp3 = (temp1 - temp2) * 200 / (temp1 + temp2);
+			if(temp3>reference_contrast_ratio || row==STOPROW)
+			{
+				remote_distance[col]=(uint8)row;
+				break;
+			}
+	  }
+
+	}
+	int32 temp_min=0;
+	temp_min=remote_distance[10];
+	for(uint16 i=10;i<=(SEARCH_IMAGE_W-10);i++)
+	{
+		if(remote_distance[i]<temp_min)temp_min=remote_distance[i];
+	}
+	reference_col=temp_min+CONTRASTOFFSET;
+	if(reference_col<1)reference_col=1;
+	if(reference_col>(SEARCH_IMAGE_W-2))reference_col=SEARCH_IMAGE_W-2;
+	for(int i=0;i<SEARCH_IMAGE_H;i++)
+	{
+		reference_col_line[i]=reference_col;
+	}
+	
+}
+
+void Search_Line(const uint8 *image)          //搜索赛道边界
+{
+	uint8 *p = (uint8 *)image[0];            //图像数组指针
+	uint8 row_max = SEARCH_IMAGE_H - 1;      //行最大值
+  uint8 row_min = STOPROW;                 //行最小值
+  uint8 col_max = SEARCH_IMAGE_W - CONTRASTOFFSET;//列最大值
+	uint8 col_min = CONTRASTOFFSET;             //列最小值
+  int16 leftstartcol = reference_col;         //搜线左起始列
+  int16 rightstartcol = reference_col;        //搜线右起始列
+	int16 leftendcol=0;                         //搜线左终止列
+	int16 rightendcol = SEARCH_IMAGE_W -1;       //搜线右终止列
+	uint8 search_time=0;                       //单点搜线次数
+	uint8 temp1 = 0,temp2 = 0;                //临时变量     用于存储图像数据
+	int temp3=0;                     //临时变量 用于存储对比度
+	int leftstop = 0,rightstop = 0, stoppoint = 0;// 搜线自锁变量
+	
+	int col, row;
+
+	for(row = row_max; row >= row_min; row --)
+	{
+	left_edge_line[row] = col_min- CONTRASTOFFSET;
+	right_edge_line[row] = col_max + CONTRASTOFFSET;
+	}
+	for(row = row_max;row >= row_min;row--)
+	{
+		p=(uint8 *)&image[row * SEARCH_IMAGE_W];       //获取本行起始点位置指针
+		if(!leftstop)
+		{
+			search_time = 2;
+			do
+			{
+				if(search_time == 1)
+				{
+					leftstartcol = reference_col;
+					leftendcol =col_min;				
+				}
+				search_time --;
+				for(col = leftstartcol;col >= leftendcol;col--)
+				{
+					temp1=*(p + col);              //获取当前点灰度值
+					temp2=*(p + col -CONTRASTOFFSET);        //获取对比点灰度值
+					if(temp1 < white_min_point && col == leftendcol && leftstartcol == reference_col)        //判断参考列是否为黑点
+					{
+						leftstop = 1;            //线搜索自锁，不进行左边线搜索
+						for(stoppoint = row;stoppoint >=0 ;stoppoint--)
+						{
+							left_edge_line[stoppoint] = col_min;
+						}
+						search_time = 0;
+						break;
+					}
+					if(temp1 < white_min_point)              //判断当前点是否为黑点
+					{
+						left_edge_line[row] = (uint8)col;
+						break;
+					}
+					if(temp2 > white_max_point)              //判断当前点是否为白点
+					{
+						continue;
+					}
+					temp3 = (temp1 - temp2) * 200 / (temp1 + temp2);
+					if(temp3 > reference_contrast_ratio || col == col_min)       //判断对比度是否到达阈值，或者已经到边界
+					{
+						left_edge_line[row] = col -CONTRASTOFFSET;          //保存当前行左边界
+					
+						leftstartcol = col + SEARCHRANGE;
+						if(leftstartcol < col)leftstartcol = col;
+						if(leftstartcol > col_max)leftstartcol = col_max;
+						leftendcol=col - SEARCHRANGE;
+						if(leftendcol < col_min)leftendcol = col_min;
+						if(leftendcol > col)leftendcol = col;
+						search_time = 0;
+						break;
+					 }
+				 }	
+			}while(search_time);
+	}
+	if(!rightstop)
+	{
+			search_time = 2;
+			do
+			{
+				if(search_time == 1)
+				{
+					rightstartcol = reference_col;
+					rightendcol = col_max;				
+				}
+				search_time --;
+				for(col = rightstartcol;col <= rightendcol;col++)
+				{
+					temp1=*(p + col);              //获取当前点灰度值
+					temp2=*(p + col + CONTRASTOFFSET);        //获取对比点灰度值
+					if(temp1 < white_min_point && col == rightendcol && rightstartcol == reference_col)        //判断参考列是否为黑点
+					{
+						rightstop = 1;            //线搜索自锁，不进行右边线搜索
+						for(stoppoint = row;stoppoint >=0 ;stoppoint--)
+						{
+							right_edge_line[stoppoint] = col_max;
+						}
+						search_time = 0;
+						break;
+					}
+					if(temp1 < white_min_point)              //判断当前点是否为黑点
+					{
+						right_edge_line[row] = (uint8)col;
+						break;
+					}
+					if(temp2 > white_max_point)              //判断当前点是否为白点
+					{
+						continue;
+					}
+					temp3 = (temp1 - temp2) * 200 / (temp1 + temp2);
+					
+					if(temp3 > reference_contrast_ratio || col == col_max)       //判断对比度是否到达阈值，或者已经到边界
+					{
+						right_edge_line[row] = col + CONTRASTOFFSET;          //保存当前行左边界
+					
+						rightstartcol = col - SEARCHRANGE;
+						if(rightstartcol < col)rightstartcol = col_min;
+						if(rightstartcol > col_max)rightstartcol = col;
+						leftendcol=col + SEARCHRANGE;
+						if(rightendcol < col_min)rightendcol = col;
+						if(rightendcol > col)rightendcol = col_max;
+						search_time = 0;
+						break;
+					 }
+				}	
+			}while(search_time);
+		}
+	}
+}

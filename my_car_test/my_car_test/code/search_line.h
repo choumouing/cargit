@@ -1,0 +1,31 @@
+#ifndef __search_line_h
+#define __search_line_h
+
+#define SEARCH_IMAGE_H  MT9V03X_H             // ( 120 )  
+#define SEARCH_IMAGE_W  MT9V03X_W            //   ( 188 )                                         
+
+#define REFRENCEROW      5              //参考点统计行数
+#define SEARCHRANGE     10         //搜线半径
+#define STOPROW         0        //搜线停止行
+#define CONTRASTOFFSET    3     //搜线对比偏移
+
+#define BLACKPOINT  50         //黑点值
+#define WHITEMAXMUL     13       // 白点最大值基于参考点的放大倍数10为不放大
+#define WHITEMINMUL       7        // 白点最小值基于参考点的放大倍数10为不放大
+
+extern uint8 reference_point;         //动态参考点
+extern uint8 reference_col;          //动态参考列
+extern uint8 white_max_point;        //动态白点最大值
+extern uint8 white_min_point;        //动态白点最小值
+extern uint8 reference_contrast_ratio;        //参考对比度
+extern uint8 reference_col_line[SEARCH_IMAGE_H];//参考列绘制
+extern uint8 remote_distance[SEARCH_IMAGE_W];          //白点远端距离
+extern uint8 left_edge_line[SEARCH_IMAGE_H];          //左右边界
+extern uint8 right_edge_line[SEARCH_IMAGE_H];
+extern uint32 if_count;
+
+void get_reference_point(const uint8 *image);
+void search_reference_col(const uint8 *image);
+void Search_Line(const uint8 *image);          //搜索赛道边界
+
+#endif
