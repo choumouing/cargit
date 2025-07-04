@@ -458,6 +458,26 @@
               <FileType>5</FileType>
               <FilePath>..\code\search_line.h</FilePath>
             </File>
+            <File>
+              <FileName>PID.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\code\PID.c</FilePath>
+            </File>
+            <File>
+              <FileName>PID.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\code\PID.h</FilePath>
+            </File>
+            <File>
+              <FileName>Find_Way.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\code\Find_Way.c</FilePath>
+            </File>
+            <File>
+              <FileName>Find_Way.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\code\Find_Way.h</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

@@ -24,8 +24,8 @@ extern uint8 left_edge_line[SEARCH_IMAGE_H];          //左右边界
 extern uint8 right_edge_line[SEARCH_IMAGE_H];
 extern uint32 if_count;
 
-void get_reference_point(const uint8 *image);
-void search_reference_col(const uint8 *image);
+void Get_Reference_Point(const uint8 *image);
+void Search_Reference_Col(const uint8 *image);
 void Search_Line(const uint8 *image);          //搜索赛道边界
 
 #endif
