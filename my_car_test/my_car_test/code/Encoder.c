@@ -1,7 +1,7 @@
 #include "zf_common_headfile.h"
 #include "Encoder.h"
  
-int16 encoder_data_L=0,encoder_data_R=0;
+int16_t encoder_data_L=0,encoder_data_R=0;
  
  void Encoder_Init()
  {
@@ -11,12 +11,12 @@ int16 encoder_data_L=0,encoder_data_R=0;
    interrupt_set_priority(PIT_PRIORITY, 0);                                    // 设置 PIT 对周期中断的中断优先级为 0
  }
 
- int16 Get_Encoder_Data_Left()
+ int16_t Get_Encoder_Data_Left()
  {
 	 return encoder_data_L;
  }
  
-  int16 Get_Encoder_Data_Right()
+  int16_t Get_Encoder_Data_Right()
  {
 	 return encoder_data_R;
  }

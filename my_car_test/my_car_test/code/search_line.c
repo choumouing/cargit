@@ -1,39 +1,30 @@
 #include "zf_common_headfile.h"
+#include "search_line.h"
+#include "zf_device_mt9v03x.h"
+#include "zf_device_ips200.h"
 
 #define SEARCH_IMAGE_H  MT9V03X_H             // ( 120 )  
 #define SEARCH_IMAGE_W  MT9V03X_W            //   ( 188 )                                         
 
 
-
-#define REFRENCEROW      5              //参考点统计行数
-#define REFRENCESTARTCOL 64							//参考点统计起始列
-#define REFRENCEENDCOL 124							//参考点统计结束列
-#define SEARCHRANGE     10         //搜线半径
-#define STOPROW         0        //搜线停止行
-#define CONTRASTOFFSET    3     //搜线对比偏移
-
-#define BLACKPOINT  50         //黑点值
-#define WHITEMAXMUL     14       // 白点最大值基于参考点的放大倍数  10为不放大
-#define WHITEMINMUL       6        // 白点最小值基于参考点的放大倍数   10为不放大
-
-uint8 reference_point=0;         //动态参考点
-uint8 reference_col=0;          //动态参考列
-uint8 white_max_point=0;        //动态白点最大值
-uint8 white_min_point=0;        //动态白点最小值
-uint8 reference_contrast_ratio=15;        //参考对比度
-uint8 reference_col_line[SEARCH_IMAGE_H] ={0};//参考列绘制
-uint8 remote_distance[SEARCH_IMAGE_W]={0};          //白点远端距离
-uint8 left_edge_line[SEARCH_IMAGE_H]={0};          //左右边界
-uint8 right_edge_line[SEARCH_IMAGE_H]={0};
-uint32 if_count=0;
+uint8_t reference_point=0;         //动态参考点
+uint8_t reference_col=0;          //动态参考列
+uint8_t white_max_point=0;        //动态白点最大值
+uint8_t white_min_point=0;        //动态白点最小值
+uint8_t reference_contrast_ratio=15;        //参考对比度
+uint8_t reference_col_line[SEARCH_IMAGE_H] ={0};//参考列绘制
+uint8_t remote_distance[SEARCH_IMAGE_W]={0};          //白点远端距离
+uint8_t left_edge_line[SEARCH_IMAGE_H]={0};          //左右边界
+uint8_t right_edge_line[SEARCH_IMAGE_H]={0};
+uint8_t center_line[SEARCH_IMAGE_H]={0};
 
 
-void Get_Reference_Point(const uint8 *image)
+void Get_Reference_Point(const uint8_t *image)
 {
-	uint8 *p = (uint8 *)&image[(SEARCH_IMAGE_H-REFRENCEROW)* SEARCH_IMAGE_W + REFRENCESTARTCOL];
-	uint16  temp = 0;                        //保存统计点总数量
+	uint8_t *p = (uint8_t *)&image[(SEARCH_IMAGE_H-REFRENCEROW)* SEARCH_IMAGE_W + REFRENCESTARTCOL];
+	uint16_t  temp = 0;                        //保存统计点总数量
 
-	uint32 templ = 0;                       //保存所有统计点加起来的和
+	uint32_t templ = 0;                       //保存所有统计点加起来的和
 
 	temp = REFRENCEROW* (REFRENCEENDCOL - REFRENCESTARTCOL);      //计算待统计点总数量
 
@@ -45,7 +36,7 @@ void Get_Reference_Point(const uint8 *image)
 		}
 	}
 
-	reference_point = (uint8) (templ / temp);          //计算点平均值，作为本幅图像的参考点
+	reference_point = (uint8_t) (templ / temp);          //计算点平均值，作为本幅图像的参考点
 	white_max_point=reference_point*WHITEMAXMUL/10;
 	if(white_max_point>255)white_max_point=255;
 	if(white_max_point<BLACKPOINT)white_max_point=BLACKPOINT;
@@ -55,7 +46,7 @@ void Get_Reference_Point(const uint8 *image)
 
 }
 
-void Search_Reference_Col(const uint8 *image)
+void Search_Reference_Col(const uint8_t *image)
 {
 	int col,row;
 	int16 temp1=0,temp2=0,temp3=0;
@@ -75,13 +66,13 @@ void Search_Reference_Col(const uint8 *image)
 			if(temp2 > white_max_point)continue;
 			if(temp1 < white_min_point)
 			{
-				remote_distance[col] = (uint8)row;
+				remote_distance[col] = (uint8_t)row;
 				break;
 			}
 			temp3 = (temp1 - temp2) * 200 / (temp1 + temp2);
 			if(temp3>reference_contrast_ratio || row==STOPROW)
 			{
-				remote_distance[col]=(uint8)row;
+				remote_distance[col]=(uint8_t)row;
 				break;
 			}
 	  }
@@ -103,19 +94,19 @@ void Search_Reference_Col(const uint8 *image)
 	
 }
 
-void Search_Line(const uint8 *image)          //搜索赛道边界
+void Search_Line(const uint8_t *image)          //搜索赛道边界
 {
-	uint8 *p = (uint8 *)&image[0];            //图像数组指针
-	uint8 row_max = SEARCH_IMAGE_H - 1;      //行最大值
-  uint8 row_min = STOPROW;                 //行最小值
-  uint8 col_max = SEARCH_IMAGE_W - CONTRASTOFFSET;//列最大值
-	uint8 col_min = CONTRASTOFFSET;             //列最小值
-  int16 leftstartcol = reference_col;         //搜线左起始列
-  int16 rightstartcol = reference_col;        //搜线右起始列
-	int16 leftendcol=0;                         //搜线左终止列
-	int16 rightendcol = SEARCH_IMAGE_W -1;       //搜线右终止列
-	uint8 search_time=0;                       //单点搜线次数
-	uint8 temp1 = 0,temp2 = 0;                //临时变量     用于存储图像数据
+	uint8_t *p = (uint8_t *)&image[0];            //图像数组指针
+	uint8_t row_max = SEARCH_IMAGE_H - 1;      //行最大值
+  uint8_t row_min = STOPROW;                 //行最小值
+  uint8_t col_max = SEARCH_IMAGE_W - CONTRASTOFFSET;//列最大值
+	uint8_t col_min = CONTRASTOFFSET;             //列最小值
+  int16_t leftstartcol = reference_col;         //搜线左起始列
+  int16_t rightstartcol = reference_col;        //搜线右起始列
+	int16_t leftendcol=0;                         //搜线左终止列
+	int16_t rightendcol = SEARCH_IMAGE_W -1;       //搜线右终止列
+	uint8_t search_time=0;                       //单点搜线次数
+	uint8_t temp1 = 0,temp2 = 0;                //临时变量     用于存储图像数据
 	int temp3=0;                     //临时变量 用于存储对比度
 	int leftstop = 0,rightstop = 0, stoppoint = 0;// 搜线自锁变量
 	
@@ -128,7 +119,7 @@ void Search_Line(const uint8 *image)          //搜索赛道边界
 	}
 	for(row = row_max;row >= row_min;row--)
 	{
-		p=(uint8 *)&image[row * SEARCH_IMAGE_W];       //获取本行起始点位置指针
+		p=(uint8_t *)&image[row * SEARCH_IMAGE_W];       //获取本行起始点位置指针
 		if(!leftstop)
 		{
 			search_time = 2;
@@ -156,7 +147,7 @@ void Search_Line(const uint8 *image)          //搜索赛道边界
 					}
 					if(temp1 < white_min_point)              //判断当前点是否为黑点
 					{
-						left_edge_line[row] = (uint8)col;
+						left_edge_line[row] = (uint8_t)col;
 						break;
 					}
 					if(temp2 > white_max_point)              //判断当前点是否为白点
@@ -208,7 +199,7 @@ void Search_Line(const uint8 *image)          //搜索赛道边界
 					}
 					if(temp1 < white_min_point)              //判断当前点是否为黑点
 					{
-						right_edge_line[row] = (uint8)col;
+						right_edge_line[row] = (uint8_t)col;
 						break;
 					}
 					if(temp2 > white_max_point)              //判断当前点是否为白点
@@ -235,4 +226,59 @@ void Search_Line(const uint8 *image)          //搜索赛道边界
 			}while(search_time);
 		}
 	}
+}
+
+void Update_Line(const uint8_t *image)
+{
+	Get_Reference_Point(image);
+	Search_Reference_Col(image);
+	Search_Line(image);   
+	for(int i = 0;i < SEARCH_IMAGE_H;i++)
+	{
+	center_line[i]=(left_edge_line[i] + right_edge_line[i])/2;
+	}
+}
+
+void if_mt9v03x_init()							  //摄像头初始化
+{
+		while(1)                                      
+    {
+        if(mt9v03x_init()) ips200_show_string(0, 16, "mt9v03x reinit.");
+        else break;
+        system_delay_ms(500);                                                  
+    }
+    ips200_show_string(0, 16, "init success.");
+}
+
+void ips_show_mt9v03x(uint8_t *image_buffer)
+{
+	        if(mt9v03x_finish_flag)
+        {
+#if (0 == DISPLAY_MODE)
+					if(Image_Ready==0)
+					{
+						memcpy(image_buffer,mt9v03x_image, MT9V03X_W * MT9V03X_H);
+						Image_Ready=1;
+					}
+            // 这是 ips200_displayimage03x 调用的真实函数 参数意义在其函数头有详细注释
+						//  ips200_show_gray_image(0, 0, (const uint8 *)mt9v03x_image, MT9V03X_W, MT9V03X_H, 240, 180, 0);
+#else
+            // 二值化图像显示 参数意义在其函数头有详细注释
+            // 二值化图像显示 参数意义在其函数头有详细注释
+            // 二值化图像显示 参数意义在其函数头有详细注释
+            ips200_show_gray_image(0, 0, (const uint8 *)mt9v03x_image, MT9V03X_W, MT9V03X_H, 240, 180, BINARIZATION_THRESHOLD);
+#endif
+            mt9v03x_finish_flag = 0;
+        }
+				if(Image_Ready==1)
+				{
+					Update_Line(image_buffer);
+					ips200_displayimage03x(image_buffer, 188, 120);            // 灰度图像显示 想要修改显示范围就修改本函数后两个参数 分别是显示宽度和高		
+					for(uint16_t i=1;i<SEARCH_IMAGE_H;i++)
+						{
+							ips200_draw_point (left_edge_line[i],i,RGB565_RED);
+							ips200_draw_point (right_edge_line[i],i,RGB565_BLUE);							
+						}
+					Image_Ready=0;
+				}
 }

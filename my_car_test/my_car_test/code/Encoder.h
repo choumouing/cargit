@@ -13,8 +13,8 @@
 #define PIT_PRIORITY                    (TIM6_IRQn)                             // 对应周期中断的中断编号 在 mm32f3277gx.h 头文件中查看 IRQn_Type 枚举体
 
 void Encoder_Init();
-int16 Get_Encoder_Data_Left();
-int16 Get_Encoder_Data_Right();
+int16_t Get_Encoder_Data_Left();
+int16_t Get_Encoder_Data_Right();
 
 
 #endif
