@@ -478,6 +478,16 @@
               <FileType>5</FileType>
               <FilePath>..\code\Find_Way.h</FilePath>
             </File>
+            <File>
+              <FileName>my_func.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\code\my_func.c</FilePath>
+            </File>
+            <File>
+              <FileName>my_func.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\code\my_func.h</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

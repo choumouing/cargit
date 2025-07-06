@@ -35,9 +35,7 @@ extern char Image_Ready;
 void Get_Reference_Point(const uint8_t *image);
 void Search_Reference_Col(const uint8_t *image);
 void Search_Line(const uint8_t *image);          //搜索赛道边界
-void Update_Line(const uint8_t *image);
-void if_mt9v03x_init();							  //摄像头初始化
-void ips_show_mt9v03x(uint8_t *image_buffer);
+
 
 
 #endif

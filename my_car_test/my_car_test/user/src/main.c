@@ -40,7 +40,7 @@
 #include "key.h"
 #include "search_line.h"
 #include "PID.h"
-
+#include "my_func.h"
 
 // **************************** 代码区域 ****************************
 
