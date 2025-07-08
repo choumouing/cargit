@@ -45,50 +45,80 @@
 // **************************** 代码区域 ****************************
 
 			
-#define PIT                             (TIM6_PIT )                             // 使用的周期中断编号 如果修改 需要同步对应修改周期中断编号与 isr.c 中的调用
-#define PIT_PRIORITY                    (TIM6_IRQn)                             // 对应周期中断的中断编号 在 mm32f3277gx.h 头文件中查看 IRQn_Type 枚举体
-	
+
+
+
 #define DISPLAY_MODE                ( 0 )                                       // 显示模式 0-灰度显示 1-二值化显示 // 0-灰度显示   就是正常显示的总钻风图像 // 1-二值化显示 根据最后一个二值化阈值显示出对应的二值化图像
 #define BINARIZATION_THRESHOLD      ( 64 )                                      // 二值化阈值 默认 64 需要设置 DISPLAY_MODE 为 1 才使用
 #define IPS200_TYPE                 (IPS200_TYPE_SPI)                     // 双排排针 并口两寸屏 这里宏定义填写 IPS200_TYPE_PARALLEL8
                                                                                 // 单排排针 SPI 两寸屏 这里宏定义填写 IPS200_TYPE_SPI
-int16 encoder_data_quaddec = 0;
+int16 encoder_data_left;
+int16 encoder_data_right;
 
 uint8 image_buffer[MT9V03X_H][MT9V03X_W]={0};
 
+float position_error=0,target_speed_diff=0,current_speed_diff=0;
+float speed_left_inc=0,speed_right_inc=0;
+int16_t speed_left_tar=0,speed_right_tar;
+int16_t speed_left=10,speed_right =10;
 
-int16_t speed_diff=0,speed=0;
 int16_t difference=0;
 char Image_Ready=0;
 
 
+
 PositionalPID position_pid;
 IncrementalPID speed_pid;
+IncrementalPID diff_pid;
 
-void ips_show_mt9v03x();
 	
 int main (void)
 {
     clock_init(SYSTEM_CLOCK_120M);                                              // 初始化芯片时钟 工作频率为 120MHz
     debug_init();                                                             	// 初始化默认 Debug UART
 	
-    ips200_init(IPS200_TYPE);
-    ips200_show_string(0, 0, "mt9v03x init.");
+		Motor_Init(); 	
 	
-    encoder_quad_init(ENCODER_QUADDEC_R , ENCODER_QUADDEC_R_A, ENCODER_QUADDEC_R_B);   // 初始化编码器模块与引脚 正交解码编码器模式
-
-    pit_ms_init(PIT, 100);                                                      // 初始化 PIT 为周期中断 100ms 周期
-		interrupt_set_priority(PIT_PRIORITY, 0);                                    // 设置 PIT 对周期中断的中断优先级为 0
-    
+    ips200_init(IPS200_TYPE);
 		if_mt9v03x_init();
 
+		Encoder_Init();
+		pit_ms_init(PIT, 100);                                                      // 初始化 PIT 为周期中断 100ms 周期
+		interrupt_set_priority(PIT_PRIORITY, 0);                                    // 设置 PIT 对周期中断的中断优先级为 0
+
+		speed_left_tar = 10;
+		speed_right_tar = 10;
+	
     while(1)
     {
-			ips_show_mt9v03x(*image_buffer);
-			PositionalPID_Init(&position_pid, 0.8f, 0, 0.05f); // 位置PID参数
-			IncrementalPID_Init(&speed_pid, 0.5f,0, 0.03f);  // 速度PID参数
-			speed_diff = PID_Speed(&position_pid,&speed_pid,*image_buffer);
-			CarControl_Turn(speed,difference+=speed_diff);
+//				Update_Line(*image_buffer);
+				ips_show_mt9v03x(*image_buffer);
+				ips200_show_int(0,130,encoder_data_left, 3);
+				ips200_show_int(0,150,encoder_data_right, 3);			
+//				ips200_show_int(0,130,white_max_point, 3);	
+//				ips200_show_int(0,150,white_min_point, 3);
+			
+				current_speed_diff = (encoder_data_left +  encoder_data_right);
+				ips200_show_int(0,170,current_speed_diff, 3);	
+			
+				IncrementalPID_Init(&speed_pid, 0.01f,0, 0.0f);  // 速度PID参数
+				speed_left_inc = IncrementalPID_Update(&speed_pid,speed_left_tar,encoder_data_left);
+				speed_left += speed_left_inc;
+		    Motor_Left_SetSpeed(speed_left);
+				speed_right_inc = IncrementalPID_Update(&speed_pid,speed_right_tar,encoder_data_right);
+				speed_right += speed_right_inc;
+		    Motor_Right_SetSpeed(speed_right);
+			
+//			PositionalPID_Init(&position_pid, 0.1f, 0, 0.01f); // 位置PID参数
+			
+
+//				position_error = 94 - center_line[80];
+//				target_speed_diff = PositionalPID_Update(&position_pid, 0, position_error);                    //位置PID的结果与速度差的关系
+//				current_speed_diff = (encoder_data_left +  encoder_data_right)/40; 
+//				speed_diff = IncrementalPID_Update(&speed_pid,0,current_speed_diff);
+//			
+//				CarControl_Turn(speed,difference+=(int16_t)speed_diff);
+			  system_delay_ms(20);
     }
 }
 
@@ -96,7 +126,11 @@ int main (void)
 
 void pit_handler (void)
 {
-    encoder_data_quaddec = encoder_get_count(ENCODER_QUADDEC_R);                  // 获取编码器计数
-    encoder_clear_count(ENCODER_QUADDEC_R);                                       // 清空编码器计数
+    encoder_data_left = encoder_get_count(ENCODER_QUADDEC_L);                  // 获取编码器计数
+		encoder_data_left = encoder_data_left / 50;
+    encoder_clear_count(ENCODER_QUADDEC_L);                                    	// 清空编码器计数
+		encoder_data_right = encoder_get_count(ENCODER_QUADDEC_R);
+		encoder_data_right = encoder_data_right / 50;
+	  encoder_clear_count(ENCODER_QUADDEC_R); 
 }
 // **************************** 代码区域 ****************************

@@ -7,17 +7,28 @@
 #define SEARCH_IMAGE_H  MT9V03X_H             // ( 120 )  
 #define SEARCH_IMAGE_W  MT9V03X_W            //   ( 188 )                                         
 
+#define REFRENCEROW      5              //参考点统计行数
+#define REFRENCESTARTCOL 64							//参考点统计起始列
+#define REFRENCEENDCOL 124							//参考点统计结束列
+#define SEARCHRANGE     10         //搜线半径
+#define STOPROW         0        //搜线停止行
+#define CONTRASTOFFSET    3     //搜线对比偏移
+
+#define BLACKPOINT  50         //黑点值
+#define WHITEMAXMUL     15       // 白点最大值基于参考点的放大倍数  10为不放大
+#define WHITEMINMUL       5        // 白点最小值基于参考点的放大倍数   10为不放大
+
 
 uint8_t reference_point=0;         //动态参考点
 uint8_t reference_col=0;          //动态参考列
 uint8_t white_max_point=0;        //动态白点最大值
 uint8_t white_min_point=0;        //动态白点最小值
-uint8_t reference_contrast_ratio=15;        //参考对比度
+uint8_t reference_contrast_ratio=20;        //参考对比度
 uint8_t reference_col_line[SEARCH_IMAGE_H] ={0};//参考列绘制
 uint8_t remote_distance[SEARCH_IMAGE_W]={0};          //白点远端距离
 uint8_t left_edge_line[SEARCH_IMAGE_H]={0};          //左右边界
 uint8_t right_edge_line[SEARCH_IMAGE_H]={0};
-uint8_t center_line[SEARCH_IMAGE_H]={0};
+
 
 
 void Get_Reference_Point(const uint8_t *image)
@@ -38,13 +49,14 @@ void Get_Reference_Point(const uint8_t *image)
 	}
 
 	reference_point = (uint8_t) (templ / temp);          //计算点平均值，作为本幅图像的参考点
-	white_max_point=reference_point*WHITEMAXMUL/10;
-	if(white_max_point>255)white_max_point=255;
-	if(white_max_point<BLACKPOINT)white_max_point=BLACKPOINT;
-	white_min_point=reference_point*WHITEMINMUL/10;	
-	if(white_min_point>255)white_max_point=255;
-	if(white_min_point<BLACKPOINT)white_max_point=BLACKPOINT;	
-
+//	white_max_point=reference_point*WHITEMAXMUL/10;
+//	if(white_max_point>255)white_max_point=255;
+//	if(white_max_point<BLACKPOINT)white_max_point=BLACKPOINT;
+//	white_min_point=reference_point*WHITEMINMUL/10;	
+//	if(white_min_point>255)white_min_point=255;
+//	if(white_min_point<BLACKPOINT)white_min_point=BLACKPOINT;	
+		white_max_point = 200;
+		white_min_point = 120;
 }
 
 void Search_Reference_Col(const uint8_t *image)
@@ -58,12 +70,12 @@ void Search_Reference_Col(const uint8_t *image)
 	}
 	
 	
-	for(col = 0; col <SEARCH_IMAGE_W; col += CONTRASTOFFSET)
+	for(col = CONTRASTOFFSET; col <SEARCH_IMAGE_W; col += CONTRASTOFFSET)
 	{
-		for(row = SEARCH_IMAGE_H - 1; row > STOPROW; row -= CONTRASTOFFSET)
+		for(row = SEARCH_IMAGE_H - CONTRASTOFFSET; row > CONTRASTOFFSET; row -= CONTRASTOFFSET)
 		{
 			temp1 = *(image + row *SEARCH_IMAGE_W + col);
-			temp2 = *(image + (row - STOPROW) * SEARCH_IMAGE_W + col);
+			temp2 = *(image + (row - CONTRASTOFFSET) * SEARCH_IMAGE_W + col);
 			if(temp2 > white_max_point)continue;
 			if(temp1 < white_min_point)
 			{
@@ -71,7 +83,7 @@ void Search_Reference_Col(const uint8_t *image)
 				break;
 			}
 			temp3 = (temp1 - temp2) * 200 / (temp1 + temp2);
-			if(temp3>reference_contrast_ratio || row==STOPROW)
+			if(temp3>reference_contrast_ratio || row <= CONTRASTOFFSET)
 			{
 				remote_distance[col]=(uint8_t)row;
 				break;
@@ -79,13 +91,17 @@ void Search_Reference_Col(const uint8_t *image)
 	  }
 
 	}
-	int32 temp_min=0;
+	int32 temp_min=0,temp_min_index;
 	temp_min=remote_distance[10];
-	for(uint16 i=10;i<=(SEARCH_IMAGE_W-10);i++)
+	for(uint16 i=11;i<=(SEARCH_IMAGE_W-10);i++)
 	{
-		if(remote_distance[i]<temp_min)temp_min=remote_distance[i];
+		if(remote_distance[i]<temp_min)
+		{
+			temp_min=remote_distance[i];
+			temp_min_index = i;
+		}
 	}
-	reference_col=temp_min+CONTRASTOFFSET;
+	reference_col=temp_min_index +CONTRASTOFFSET;
 	if(reference_col<1)reference_col=1;
 	if(reference_col>(SEARCH_IMAGE_W-2))reference_col=SEARCH_IMAGE_W-2;
 	for(int i=0;i<SEARCH_IMAGE_H;i++)
@@ -215,11 +231,11 @@ void Search_Line(const uint8_t *image)          //搜索赛道边界
 						if(right_edge_line[row] < 0) right_edge_line[row] = 0;
 						else if(right_edge_line[row] >= SEARCH_IMAGE_W) right_edge_line[row] = SEARCH_IMAGE_W - 1;
 						rightstartcol = col - SEARCHRANGE;
-						if(rightstartcol < col)rightstartcol = col_min;
-						if(rightstartcol > col_max)rightstartcol = col;
-						leftendcol=col + SEARCHRANGE;
-						if(rightendcol < col_min)rightendcol = col;
-						if(rightendcol > col)rightendcol = col_max;
+						if(rightstartcol < col_min)rightstartcol = col_min;
+						if(rightstartcol > col)rightstartcol = col;
+						rightstartcol=col + SEARCHRANGE;
+						if(rightendcol < col)rightendcol = col;
+						if(rightendcol > col_max)rightendcol = col_max;
 						search_time = 0;
 						break;
 					 }

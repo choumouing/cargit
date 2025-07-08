@@ -1,6 +1,8 @@
 #ifndef __MY_FUNC_H__
 #define __MY_FUNC_H__
 
+extern uint8_t center_line[SEARCH_IMAGE_H];
+
 int myabs(int num);
 
 void Update_Line(const uint8_t *image);

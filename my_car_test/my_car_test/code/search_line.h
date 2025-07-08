@@ -14,8 +14,8 @@
 #define CONTRASTOFFSET    3     //搜线对比偏移
 
 #define BLACKPOINT  50         //黑点值
-#define WHITEMAXMUL     14       // 白点最大值基于参考点的放大倍数  10为不放大
-#define WHITEMINMUL       6        // 白点最小值基于参考点的放大倍数   10为不放大
+#define WHITEMAXMUL     15       // 白点最大值基于参考点的放大倍数  10为不放大
+#define WHITEMINMUL       5        // 白点最小值基于参考点的放大倍数   10为不放大
 
 extern uint8_t reference_point;         //动态参考点
 extern uint8_t reference_col;          //动态参考列
@@ -26,7 +26,7 @@ extern uint8_t reference_col_line[SEARCH_IMAGE_H];//参考列绘制
 extern uint8_t remote_distance[SEARCH_IMAGE_W];          //白点远端距离
 extern uint8_t left_edge_line[SEARCH_IMAGE_H];          //左右边界
 extern uint8_t right_edge_line[SEARCH_IMAGE_H];
-extern uint8_t center_line[SEARCH_IMAGE_H];
+
 extern uint32_t if_count;
 
 extern char Image_Ready;

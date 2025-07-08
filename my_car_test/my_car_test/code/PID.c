@@ -2,6 +2,8 @@
 #include "PID.h"
 #include "Encoder.h"
 #include "search_line.h"
+#include "my_func.h"
+
 
 // 位置式PID初始化
 void PositionalPID_Init(PositionalPID* pid, float Kp, float Ki, float Kd) {
@@ -63,10 +65,5 @@ float IncrementalPID_Update(IncrementalPID* pid, float target, float current)
 
 int16_t PID_Speed(PositionalPID* P_pid,IncrementalPID* I_pid,const uint8_t *image)
 {
-	Update_Line(image);
-	float position_error = 94 - center_line[80];
-	float target_speed_diff = PositionalPID_Update(P_pid, 0, position_error);                    //位置PID的结果与速度差的关系
-	float current_speed_diff =  Get_Encoder_Data_Left() -  Get_Encoder_Data_Right(); 
-	float speed_diff = IncrementalPID_Update(I_pid,target_speed_diff,current_speed_diff);
-	return (int16_t)speed_diff;
+
 }

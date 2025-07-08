@@ -26,5 +26,5 @@ void IncrementalPID_Init(IncrementalPID* pid, float Kp, float Ki, float Kd);
 float PositionalPID_Update(PositionalPID* pid, float target, float current);
 float IncrementalPID_Update(IncrementalPID* pid, float target, float current);
 
-int16_t PID_Speed(PositionalPID* P_pid,IncrementalPID* I_pid,const uint8_t *image);
+//int16_t PID_Speed(PositionalPID* P_pid,IncrementalPID* I_pid,const uint8_t *image);
 #endif

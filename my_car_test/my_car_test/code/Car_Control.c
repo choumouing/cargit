@@ -1,5 +1,7 @@
 #include "zf_common_headfile.h"
 #include "Car_Control.h"
+#include "PID.h"
+
 
 void Motor_Init(void)       //DIR,PWM口初始化
 {
@@ -9,37 +11,43 @@ void Motor_Init(void)       //DIR,PWM口初始化
     gpio_init(DIR_R, GPO, GPIO_HIGH, GPO_PUSH_PULL);                          
     pwm_init(PWM_R, 17000, 0);                                                
 }
-void Motor_Left_SetSpeed(uint8_t Speed)
-{
-	Speed=Speed*0.01;
-	if (Speed >= 0)							//正转
+
+
+void Motor_Left_SetSpeed(int8_t duty)
+{	
+	
+	
+	if(duty >= 20)duty = 20;
+	if(duty <= -20)duty = -20;
+	if (duty >= 0)							//如果设置正转的速度值
 	{
-		gpio_set_level(DIR_L, GPIO_HIGH);
-		pwm_set_duty(PWM_L, (uint32)Speed*PWM_DUTY_MAX);                  
+		gpio_set_level(DIR_L, GPIO_LOW);
+		pwm_set_duty(PWM_L, duty*100 );                  
                               
 	}
-	else									      //反转
+	else									//否则，即设置反转的速度值
 	{  
-		 gpio_set_level(DIR_L, GPIO_LOW);
-     pwm_set_duty(PWM_L,(uint32)(-Speed)*PWM_DUTY_MAX);
+		 gpio_set_level(DIR_L, GPIO_HIGH);
+     pwm_set_duty(PWM_L, (-duty)*100);
 	}
 }
-void Motor_Right_SetSpeed(uint8_t Speed)
+void Motor_Right_SetSpeed(int8_t duty)
 {
-	Speed=Speed*0.01;
-	if (Speed >= 0)							//正转
+	if(duty >= 20)duty = 20;
+	if(duty <= -20)duty = -20;
+	if (duty >= 0)							//如果设置正转的速度值
 	{
+		gpio_set_level(DIR_R, GPIO_LOW);
+		pwm_set_duty(PWM_R, duty*100);                  // 计算占空比           
+	}
+	else									//否则，即设置反转的速度值
+	{ 
 		gpio_set_level(DIR_R, GPIO_HIGH);
-		pwm_set_duty(PWM_R, (uint32)Speed*PWM_DUTY_MAX);                  
-                              
-	}
-	else									      //反转
-	{  
-		 gpio_set_level(DIR_R, GPIO_LOW);
-     pwm_set_duty(PWM_R,(uint32)(-Speed)*PWM_DUTY_MAX);
+    pwm_set_duty(PWM_R, (-duty)*100);               // 计算占空
 	}
 }
-void CarControl_Turn(uint8_t Speed,int16_t Difference)
+
+void CarControl_Turn(int8_t Speed,int16_t Difference)
 {
 	Motor_Left_SetSpeed(Speed+Difference);
 	Motor_Right_SetSpeed(Speed-Difference);

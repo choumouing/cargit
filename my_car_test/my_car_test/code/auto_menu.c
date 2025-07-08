@@ -1,6 +1,7 @@
 #include "zf_common_headfile.h"
 #include "auto_menu.h"
 #include "key.h"
+#include "search_line.h"
 
 //按键信号量及按键反馈信号量
 #ifdef  MENU_USE_RTT
@@ -601,6 +602,8 @@ void NULL_FUN(){
 
 }
 
+
+
 float test_a=1.1f;
 int test_b=100;
 double test_c=100;
@@ -609,7 +612,7 @@ uint32 test_e=32;
 
 void UNIT_SET(){
 	//菜单单元调参参数初始化
-    unit_param_set(&test_a,TYPE_FLOAT ,0.5  ,3  ,3,NORMAL_PAR,"test_a");
+    unit_param_set(&reference_contrast_ratio,TYPE_UINT16 , 1  ,3  ,3,NORMAL_PAR,"ratio");
     unit_param_set(&test_b,TYPE_INT   ,2    ,6  ,0,NORMAL_PAR,"test_b");
     unit_param_set(&test_c,TYPE_DOUBLE,11.11,4  ,4,NORMAL_PAR,"test_c");
     unit_param_set(&test_d,TYPE_UINT16,1    ,6  ,0,NORMAL_PAR,"test_d");

@@ -384,14 +384,14 @@
           <GroupName>user_c</GroupName>
           <Files>
             <File>
-              <FileName>main.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\USER\src\main.c</FilePath>
-            </File>
-            <File>
               <FileName>isr.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\user\src\isr.c</FilePath>
+            </File>
+            <File>
+              <FileName>main.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\USER\src\main.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -449,16 +449,6 @@
               <FilePath>..\code\key.h</FilePath>
             </File>
             <File>
-              <FileName>search_line.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\code\search_line.c</FilePath>
-            </File>
-            <File>
-              <FileName>search_line.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>..\code\search_line.h</FilePath>
-            </File>
-            <File>
               <FileName>PID.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\code\PID.c</FilePath>
@@ -469,16 +459,6 @@
               <FilePath>..\code\PID.h</FilePath>
             </File>
             <File>
-              <FileName>Find_Way.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\code\Find_Way.c</FilePath>
-            </File>
-            <File>
-              <FileName>Find_Way.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>..\code\Find_Way.h</FilePath>
-            </File>
-            <File>
               <FileName>my_func.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\code\my_func.c</FilePath>
@@ -487,6 +467,26 @@
               <FileName>my_func.h</FileName>
               <FileType>5</FileType>
               <FilePath>..\code\my_func.h</FilePath>
+            </File>
+            <File>
+              <FileName>search_line.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\code\search_line.c</FilePath>
+            </File>
+            <File>
+              <FileName>search_line.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\code\search_line.h</FilePath>
+            </File>
+            <File>
+              <FileName>Find_Way.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\code\Find_Way.c</FilePath>
+            </File>
+            <File>
+              <FileName>Find_Way.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\code\Find_Way.h</FilePath>
             </File>
           </Files>
         </Group>
