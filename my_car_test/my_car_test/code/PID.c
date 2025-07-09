@@ -27,7 +27,7 @@ void IncrementalPID_Init(IncrementalPID* pid, float Kp, float Ki, float Kd) {
 float PositionalPID_Update(PositionalPID* pid, float target, float current) 
 {
     // 计算误差
-    float err = current - target;
+    float err = target - current;
     
     // 积分项更新 (防饱和处理通常加在这里)
     pid->integral += err;
@@ -49,21 +49,18 @@ float PositionalPID_Update(PositionalPID* pid, float target, float current)
 
 
 float IncrementalPID_Update(IncrementalPID* pid, float target, float current) 
-{
+{ 
     // 更新误差队列
     pid->err[0] = pid->err[1];  // e(k-2) = e(k-1)
     pid->err[1] = pid->err[2];  // e(k-1) = e(k)
-    pid->err[2] = current - target;  // 当前误差e(k)
-    
+    pid->err[2] = target - current;  // 当前误差e(k)
+	
     // 计算增量 (核心公式)
     float delta = pid->Kp * (pid->err[2] - pid->err[1]) 
                 + pid->Ki * pid->err[2] 
                 + pid->Kd * (pid->err[2] - 2*pid->err[1] + pid->err[0]);
+
     
     return delta;  // 返回控制增量
 }
 
-int16_t PID_Speed(PositionalPID* P_pid,IncrementalPID* I_pid,const uint8_t *image)
-{
-
-}

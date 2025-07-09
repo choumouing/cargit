@@ -13,37 +13,37 @@ void Motor_Init(void)       //DIR,PWM口初始化
 }
 
 
-void Motor_Left_SetSpeed(int8_t duty)
+void Motor_Left_SetSpeed(int16_t duty)
 {	
 	
 	
-	if(duty >= 20)duty = 20;
-	if(duty <= -20)duty = -20;
+	if(duty >= 80)duty = 80;
+	if(duty <= -80)duty = -80;        //20%zkb
 	if (duty >= 0)							//如果设置正转的速度值
 	{
 		gpio_set_level(DIR_L, GPIO_LOW);
-		pwm_set_duty(PWM_L, duty*100 );                  
+		pwm_set_duty(PWM_L, duty*25 );                  
                               
 	}
 	else									//否则，即设置反转的速度值
 	{  
 		 gpio_set_level(DIR_L, GPIO_HIGH);
-     pwm_set_duty(PWM_L, (-duty)*100);
+     pwm_set_duty(PWM_L, (-duty)*25);
 	}
 }
-void Motor_Right_SetSpeed(int8_t duty)
+void Motor_Right_SetSpeed(int16_t duty)
 {
-	if(duty >= 20)duty = 20;
-	if(duty <= -20)duty = -20;
+	if(duty >= 80)duty = 80;
+	if(duty <= -80)duty = -80;
 	if (duty >= 0)							//如果设置正转的速度值
 	{
 		gpio_set_level(DIR_R, GPIO_LOW);
-		pwm_set_duty(PWM_R, duty*100);                  // 计算占空比           
+		pwm_set_duty(PWM_R, duty*25);                  // 计算占空比           
 	}
 	else									//否则，即设置反转的速度值
 	{ 
 		gpio_set_level(DIR_R, GPIO_HIGH);
-    pwm_set_duty(PWM_R, (-duty)*100);               // 计算占空
+    pwm_set_duty(PWM_R, (-duty)*25);               // 计算占空
 	}
 }
 

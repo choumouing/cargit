@@ -41,6 +41,7 @@
 #include "search_line.h"
 #include "PID.h"
 #include "my_func.h"
+#include "Find_Way.h"
 
 // **************************** 代码区域 ****************************
 
@@ -59,17 +60,19 @@ uint8 image_buffer[MT9V03X_H][MT9V03X_W]={0};
 
 float position_error=0,target_speed_diff=0,current_speed_diff=0;
 float speed_left_inc=0,speed_right_inc=0;
-int16_t speed_left_tar=0,speed_right_tar;
-int16_t speed_left=10,speed_right =10;
+int16_t speed_left_tar=0,speed_right_tar=0;
+float speed_left = 0,speed_right = 0;
+int16_t speed_left_base = 30,speed_right_base = 37;                 //left 20 right 24           left 30 right 37
 
 int16_t difference=0;
 char Image_Ready=0;
 
+int16_t center_line_weight[9] = {1,1,1,2,9,2,1,1,1};
+int32_t center_line_weight_temp = 0;
 
-
-PositionalPID position_pid;
-IncrementalPID speed_pid;
-IncrementalPID diff_pid;
+PositionalPID position_pid = {0};
+IncrementalPID speed_pid = {0};
+IncrementalPID diff_pid = {0};
 
 	
 int main (void)
@@ -83,42 +86,56 @@ int main (void)
 		if_mt9v03x_init();
 
 		Encoder_Init();
-		pit_ms_init(PIT, 100);                                                      // 初始化 PIT 为周期中断 100ms 周期
+		pit_ms_init(PIT, 20);                                                      // 初始化 PIT 为周期中断 20ms 周期
 		interrupt_set_priority(PIT_PRIORITY, 0);                                    // 设置 PIT 对周期中断的中断优先级为 0
 
-		speed_left_tar = 10;
-		speed_right_tar = 10;
-	
+//		speed_left_tar = 20;
+//		speed_right_tar = 20;
+//	  Motor_Left_SetSpeed(30);
+//		Motor_Right_SetSpeed(37);
     while(1)
     {
-//				Update_Line(*image_buffer);
-				ips_show_mt9v03x(*image_buffer);
-				ips200_show_int(0,130,encoder_data_left, 3);
-				ips200_show_int(0,150,encoder_data_right, 3);			
-//				ips200_show_int(0,130,white_max_point, 3);	
-//				ips200_show_int(0,150,white_min_point, 3);
 			
-				current_speed_diff = (encoder_data_left +  encoder_data_right);
-				ips200_show_int(0,170,current_speed_diff, 3);	
+			PositionalPID_Init(&position_pid, 1.0f, 0, 0.6f); // 位置PID参数
+			IncrementalPID_Init(&speed_pid, 0.5f,0.04f, 0.15f);  // 速度PID参数	
 			
-				IncrementalPID_Init(&speed_pid, 0.01f,0, 0.0f);  // 速度PID参数
-				speed_left_inc = IncrementalPID_Update(&speed_pid,speed_left_tar,encoder_data_left);
-				speed_left += speed_left_inc;
-		    Motor_Left_SetSpeed(speed_left);
-				speed_right_inc = IncrementalPID_Update(&speed_pid,speed_right_tar,encoder_data_right);
-				speed_right += speed_right_inc;
-		    Motor_Right_SetSpeed(speed_right);
+				ips_show_mt9v03x(*image_buffer);    	
+
+				current_speed_diff = (encoder_data_left - encoder_data_right);
+				ips200_show_int(0,170,element_name, 3);	
 			
-//			PositionalPID_Init(&position_pid, 0.1f, 0, 0.01f); // 位置PID参数
+        printf("center_line_weight_temp \t\t%d .\r\n", center_line_weight_temp); 
+			  printf("target_speed_diff \t\t%f .\r\n", target_speed_diff); 
+			  printf("speed_left \t\t%d .\r\n", (int16_t)speed_left); 			
+				printf("speed_right \t\t%d .\r\n", (int16_t)speed_right);
+			
+				for(int i = 0;i < 9;i++)
+				{
+					center_line_weight_temp += center_line_weight[i]*center_line[20+i*10];	
+				}
+				center_line_weight_temp = 
+				center_line_weight_temp / 19;		
+				
+				
+				target_speed_diff = PositionalPID_Update(&position_pid,center_line_weight_temp, 94);                    //位置PID的结果与速度差的关系
+
+				speed_left = speed_left_base + target_speed_diff;
+				speed_right = speed_right_base - target_speed_diff;
+				
+//				speed_left_inc = IncrementalPID_Update(&speed_pid,speed_left_tar,encoder_data_left);
+//				speed_left += speed_left_inc;
+		    Motor_Left_SetSpeed((int16_t)speed_left);
+//				speed_right_inc = IncrementalPID_Update(&speed_pid,speed_right_tar,encoder_data_right);
+//				speed_right += speed_right_inc;
+		    Motor_Right_SetSpeed((int16_t)speed_right);
 			
 
-//				position_error = 94 - center_line[80];
-//				target_speed_diff = PositionalPID_Update(&position_pid, 0, position_error);                    //位置PID的结果与速度差的关系
-//				current_speed_diff = (encoder_data_left +  encoder_data_right)/40; 
-//				speed_diff = IncrementalPID_Update(&speed_pid,0,current_speed_diff);
+
+//				current_speed_diff = (encoder_data_left -  encoder_data_right)/40; 
+//				speed_diff = IncrementalPID_Update(&speed_pid,target_speed_diff,current_speed_diff);
 //			
 //				CarControl_Turn(speed,difference+=(int16_t)speed_diff);
-			  system_delay_ms(20);
+			  system_delay_ms(50);
     }
 }
 
@@ -127,10 +144,13 @@ int main (void)
 void pit_handler (void)
 {
     encoder_data_left = encoder_get_count(ENCODER_QUADDEC_L);                  // 获取编码器计数
-		encoder_data_left = encoder_data_left / 50;
+		encoder_data_left = encoder_data_left / 7;
     encoder_clear_count(ENCODER_QUADDEC_L);                                    	// 清空编码器计数
 		encoder_data_right = encoder_get_count(ENCODER_QUADDEC_R);
-		encoder_data_right = encoder_data_right / 50;
+		encoder_data_right = - (encoder_data_right / 7);
 	  encoder_clear_count(ENCODER_QUADDEC_R); 
+	
+
+
 }
 // **************************** 代码区域 ****************************

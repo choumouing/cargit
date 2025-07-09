@@ -22,8 +22,8 @@ void Update_Line(const uint8_t *image)
 	Get_Reference_Point(image);
 	Search_Reference_Col(image);
 	Search_Line(image);
-//	Judging_Elements(left_edge_line,right_edge_line);
-//	Connect(left_edge_line,right_edge_line);
+	Judging_Elements(left_edge_line,right_edge_line);
+	Connect(left_edge_line,right_edge_line);
 	for(int i = 0;i < SEARCH_IMAGE_H;i++)
 	{
 	center_line[i]=(left_edge_line[i] + right_edge_line[i])/2;
@@ -70,7 +70,7 @@ void ips_show_mt9v03x(uint8_t *image_buffer)
 						{
 							ips200_draw_point(left_edge_line[i],i,RGB565_RED);
 							ips200_draw_point(right_edge_line[i],i,RGB565_BLUE);
-							ips200_draw_point(reference_col_line[i],i,RGB565_GREEN);
+							ips200_draw_point(center_line[i],i,RGB565_GREEN);
 						}
 					Image_Ready=0;
 				}
