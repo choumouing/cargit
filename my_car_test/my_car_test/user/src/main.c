@@ -62,12 +62,12 @@ float position_error=0,target_speed_diff=0,current_speed_diff=0;
 float speed_left_inc=0,speed_right_inc=0;
 int16_t speed_left_tar=0,speed_right_tar=0;
 float speed_left = 0,speed_right = 0;
-int16_t speed_left_base = 30,speed_right_base = 37;                 //left 20 right 24           left 30 right 37
+int16_t speed_left_base = 67,speed_right_base = 60;                 //left 20 right 24           left 30 right 37      left 40    right 41  left67   right60
 
 int16_t difference=0;
 char Image_Ready=0;
 
-int16_t center_line_weight[9] = {1,1,1,2,9,2,1,1,1};
+int16_t center_line_weight[9] = {0,1,8,9,9,3,2,1,1};
 int32_t center_line_weight_temp = 0;
 
 PositionalPID position_pid = {0};
@@ -91,30 +91,42 @@ int main (void)
 
 //		speed_left_tar = 20;
 //		speed_right_tar = 20;
-//	  Motor_Left_SetSpeed(30);
-//		Motor_Right_SetSpeed(37);
+	  Motor_Left_SetSpeed(67);
+		Motor_Right_SetSpeed(60);
+ 
+		PositionalPID_Init(&position_pid, 2.8f, 0, 1.6f); // 位置PID参数           1.6 0 0.8
+		IncrementalPID_Init(&speed_pid, 0.5f,0.04f, 0.15f);  // 速度PID参数	
+
+//	  timer_init(TIM_2, TIMER_MS);                                                // 定时器使用 TIM_3 使用毫秒级计数
+//    timer_start(TIM_2);                                                         // 启动定时
+//    system_delay_ms(1000); 
     while(1)
     {
-			
-			PositionalPID_Init(&position_pid, 1.0f, 0, 0.6f); // 位置PID参数
-			IncrementalPID_Init(&speed_pid, 0.5f,0.04f, 0.15f);  // 速度PID参数	
+//			if(timer_get(TIM_2) == 10)
+//			{
+//				speed_left_base = 0;
+//				speed_right_base = 0;
+//			PositionalPID_Init(&position_pid, 0.0f, 0, 0.0f); // 位置PID参数
+//			}
+
 			
 				ips_show_mt9v03x(*image_buffer);    	
 
 				current_speed_diff = (encoder_data_left - encoder_data_right);
 				ips200_show_int(0,170,element_name, 3);	
 			
-        printf("center_line_weight_temp \t\t%d .\r\n", center_line_weight_temp); 
-			  printf("target_speed_diff \t\t%f .\r\n", target_speed_diff); 
-			  printf("speed_left \t\t%d .\r\n", (int16_t)speed_left); 			
-				printf("speed_right \t\t%d .\r\n", (int16_t)speed_right);
+//        printf("center_line_weight_temp \t\t%d .\r\n", center_line_weight_temp); 
+//			  printf("target_speed_diff \t\t%f .\r\n", target_speed_diff); 
+//			  printf("speed_left \t\t%d .\r\n", encoder_data_left); 			
+//				printf("speed_right \t\t%d .\r\n", encoder_data_right);
+//				printf("test_data1 \t\t%d .\r\n", test_data1);
 			
 				for(int i = 0;i < 9;i++)
 				{
 					center_line_weight_temp += center_line_weight[i]*center_line[20+i*10];	
 				}
 				center_line_weight_temp = 
-				center_line_weight_temp / 19;		
+				center_line_weight_temp / 34;		
 				
 				
 				target_speed_diff = PositionalPID_Update(&position_pid,center_line_weight_temp, 94);                    //位置PID的结果与速度差的关系
@@ -133,9 +145,8 @@ int main (void)
 
 //				current_speed_diff = (encoder_data_left -  encoder_data_right)/40; 
 //				speed_diff = IncrementalPID_Update(&speed_pid,target_speed_diff,current_speed_diff);
-//			
-//				CarControl_Turn(speed,difference+=(int16_t)speed_diff);
-			  system_delay_ms(50);
+			
+			  system_delay_ms(20);
     }
 }
 

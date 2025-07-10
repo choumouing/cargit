@@ -4,7 +4,7 @@
 #include "my_func.h"
 
 uint8_t element_name = 0;
-
+int16_t test_data1 = 0,test_data2 = 0;
 
 
 uint8_t find_jump_point(uint8_t *arrary_value, uint8_t num0, uint8_t num1, uint8_t jump_num, uint8_t model)
@@ -29,7 +29,7 @@ uint8_t find_jump_point(uint8_t *arrary_value, uint8_t num0, uint8_t num1, uint8
 	else
 	{
 		temp_jump_point = num1;
-		for(int i = 0;i < (num1-num1);i++)
+		for(int i = 0;i < (num0-num1);i++)
 		{
 			temp_data = myabs(arrary_value[num1 + i] - arrary_value[num1 + i +1]);
 			if(temp_data > jump_num)
@@ -57,7 +57,7 @@ void connect_point(uint8_t *arrary_value,uint8_t num0,uint8_t num1)
 }
 
 
-uint8_t Find_Cross(uint8_t *arrary_value1,uint8_t *arrary_value2)
+uint8_t Find_Cross_Ready(uint8_t *arrary_value1,uint8_t *arrary_value2)
 {
 	uint8_t temp_flag = 0,temp_count = 0;
 	for(int i = SEARCH_IMAGE_H - CROSSDOWNEDGE;i > (SEARCH_IMAGE_H - CROSSUPEDGE) ;i--)
@@ -70,6 +70,21 @@ uint8_t Find_Cross(uint8_t *arrary_value1,uint8_t *arrary_value2)
 		else temp_flag = 0;
 	}
 	if(temp_count >= CROSSJUDGETHRESHOLD )return 1;
+	else return 0;
+}
+
+uint8_t Find_Cross_In(uint8_t *arrary_value1,uint8_t *arrary_value2)
+{
+	uint8_t temp_left_flag = 0,temp_right_flag = 0;
+	int16_t temp_left = 0,temp_right = 0;
+	for(int i = 110;i > 80;i--)
+	{
+		temp_left += arrary_value1[i];
+		temp_right += arrary_value2[i];
+	}
+	if(temp_left < (30 * 5) )temp_left_flag = 1;
+	if(temp_right > (30 * 183) )temp_right_flag = 1;
+	if(temp_left_flag && temp_right_flag)return 1;
 	else return 0;
 }
 
@@ -110,13 +125,17 @@ void Judging_Elements(uint8_t *arrary_value1,uint8_t *arrary_value2)
 	switch (element_name) 
 	{
         case STRAIGHT:
-            if (Find_Cross(arrary_value1,arrary_value2))element_name = CROSS;
+            if (Find_Cross_Ready(arrary_value1,arrary_value2))element_name = CROSS_READY;
             else if (FindIsland_Ready(arrary_value1,arrary_value2)) element_name = ISLAND_READY;
 						else element_name = STRAIGHT;
 							break;
-        case CROSS:
-            if (!Find_Cross(arrary_value1,arrary_value2)) element_name = STRAIGHT;
-						else element_name = CROSS;
+        case CROSS_READY:
+            if (Find_Cross_In(arrary_value1,arrary_value2)) element_name = CROSS_IN;
+						else element_name = CROSS_READY;
+							break;
+				case CROSS_IN:
+						if (!Find_Cross_In(arrary_value1,arrary_value2)) element_name = STRAIGHT;
+						else element_name = CROSS_IN;
 							break;
         case ISLAND_READY:
 					if(FindIsland_In(arrary_value1,arrary_value2)) element_name = ISLAND_IN;
@@ -143,24 +162,44 @@ void Judging_Elements(uint8_t *arrary_value1,uint8_t *arrary_value2)
 void Connect(uint8_t *arrary_value1,uint8_t *arrary_value2)
 {
 	int16_t start_point = 0,end_point = 0;
-	if(element_name == CROSS)
+	float temp_slope = 0;
+	if(element_name == CROSS_READY)
 	{
 		start_point = find_jump_point(arrary_value1,CROSSUPEDGE,CROSSDOWNEDGE,CROSSJUMPTHRESHOLD,1);
-		end_point = find_jump_point(arrary_value1,CROSSUPEDGE,CROSSDOWNEDGE,CROSSJUMPTHRESHOLD,0);	
-//		end_point = find_jump_point(arrary_value1,start_point,CROSSDOWNEDGE,CROSSJUMPTHRESHOLD,1);
+//		end_point = find_jump_point(arrary_value1,CROSSUPEDGE,CROSSDOWNEDGE,CROSSJUMPTHRESHOLD,0);	
+		end_point = find_jump_point(arrary_value1,start_point,CROSSDOWNEDGE,CROSSJUMPTHRESHOLD,1);
 		connect_point(arrary_value1,start_point,end_point - 10);
 		
-	float temp_slope = ((float)arrary_value1[start_point] - (float)arrary_value1[end_point]) / (end_point - start_point);
+	temp_slope = ((float)arrary_value1[start_point] - (float)arrary_value1[end_point]) / (end_point - start_point);
 	for(int i = 0;i < (start_point - end_point);i++)
 	{
 		arrary_value2[start_point - i] = (int8_t)((-temp_slope) * i) + arrary_value2[start_point];
 		if(arrary_value2[start_point - i] >= 188)arrary_value2[start_point - i] = 188;
 		if(arrary_value2[start_point - i] <= 0)arrary_value2[start_point - i] = 0;
 	}
-//		start_point = find_jump_point(arrary_value2,CROSSUPEDGE,CROSSDOWNEDGE,CROSSJUMPTHRESHOLD,1);
+		start_point = find_jump_point(arrary_value2,CROSSUPEDGE,CROSSDOWNEDGE,CROSSJUMPTHRESHOLD,1);
 //		end_point = find_jump_point(arrary_value2,CROSSUPEDGE,CROSSDOWNEDGE,CROSSJUMPTHRESHOLD,0);
-////		end_point = find_jump_point(arrary_value2,start_point,CROSSDOWNEDGE,CROSSJUMPTHRESHOLD,1);
-//		connect_point(arrary_value2,start_point,end_point - 10);		
+		end_point = find_jump_point(arrary_value2,start_point,CROSSDOWNEDGE,CROSSJUMPTHRESHOLD,1);
+		connect_point(arrary_value2,start_point,end_point - 10);		
+	}
+	else if(element_name == CROSS_IN)
+	{
+		start_point = 120;
+		end_point = find_jump_point(arrary_value1,110,10,CROSSJUMPTHRESHOLD,0);
+		temp_slope = ((float)arrary_value1[end_point] - (float)arrary_value1[end_point - 20]) / (-20);
+		for(int i = 0;i < (start_point - end_point);i++)
+		{
+			arrary_value1[end_point + i] = (int8_t)((temp_slope) * i) + arrary_value1[end_point];
+			if(arrary_value1[end_point + i] >= 188)arrary_value1[end_point + i] = 188;
+			if(arrary_value1[end_point + i] <= 0)arrary_value1[end_point + i] = 0;
+		}
+		for(int i = 0;i < (start_point - end_point);i++)
+		{
+			arrary_value2[end_point + i] = -(int8_t)((temp_slope) * i) + arrary_value2[end_point];
+			if(arrary_value2[end_point + i] >= 188)arrary_value2[end_point + i] = 188;
+			if(arrary_value2[end_point + i] <= 0)arrary_value2[end_point + i] = 0;
+		}
+		
 	}
 }
 
