@@ -2,6 +2,8 @@
 #include "auto_menu.h"
 #include "key.h"
 #include "search_line.h"
+#include "car_control.h"
+#include "pid.h"
 
 //按键信号量及按键反馈信号量
 #ifdef  MENU_USE_RTT
@@ -604,19 +606,26 @@ void NULL_FUN(){
 
 
 
-float test_a=1.1f;
-int test_b=100;
-double test_c=100;
-uint16 test_d=20;
-uint32 test_e=32;
-
 void UNIT_SET(){
 	//菜单单元调参参数初始化
     unit_param_set(&reference_contrast_ratio,TYPE_UINT16 , 1  ,3  ,3,NORMAL_PAR,"ratio");
-    unit_param_set(&test_b,TYPE_INT   ,2    ,6  ,0,NORMAL_PAR,"test_b");
-    unit_param_set(&test_c,TYPE_DOUBLE,11.11,4  ,4,NORMAL_PAR,"test_c");
-    unit_param_set(&test_d,TYPE_UINT16,1    ,6  ,0,NORMAL_PAR,"test_d");
-    unit_param_set(&test_e,TYPE_UINT32,1    ,6  ,0,NORMAL_PAR,"test_e");
+    unit_param_set(&weight1, TYPE_INT,1    ,2  ,0,NORMAL_PAR,"weight1");
+    unit_param_set(&weight2, TYPE_INT,1    ,2	 ,0,NORMAL_PAR,"weight2");
+    unit_param_set(&weight3, TYPE_INT,1    ,2  ,0,NORMAL_PAR,"weight3");
+    unit_param_set(&weight4, TYPE_INT,1    ,2  ,0,NORMAL_PAR,"weight4");
+    unit_param_set(&weight5, TYPE_INT,1    ,2  ,0,NORMAL_PAR,"weight5");
+    unit_param_set(&weight6, TYPE_INT,1    ,2  ,0,NORMAL_PAR,"weight6");
+    unit_param_set(&weight7, TYPE_INT,1    ,2  ,0,NORMAL_PAR,"weight7");
+    unit_param_set(&weight8, TYPE_INT,1    ,2  ,0,NORMAL_PAR,"weight8");	
+    unit_param_set(&weight9, TYPE_INT,1    ,2  ,0,NORMAL_PAR,"weight9");
+    unit_param_set(&weight10,TYPE_INT,1	   ,2  ,0,NORMAL_PAR,"weight10");
+    unit_param_set(&weight11,TYPE_INT,1    ,2  ,0,NORMAL_PAR,"weight11");
+    unit_param_set(&speed_left_base,TYPE_INT,1	   ,3  ,0,NORMAL_PAR,"speed_left_base");
+    unit_param_set(&speed_right_base,TYPE_INT,1    ,3  ,0,NORMAL_PAR,"speed_left_base");	
+    unit_param_set(&p_kp,TYPE_FLOAT,0.1	   ,2  ,2,NORMAL_PAR,"p_kp");
+    unit_param_set(&p_ki,TYPE_FLOAT,0.1    ,2  ,2,NORMAL_PAR,"p_ki");	
+    unit_param_set(&p_kd,TYPE_FLOAT,0.1    ,2  ,2,NORMAL_PAR,"p_kd");		
+	
 }
 
 void FUN_INIT(){

@@ -62,13 +62,13 @@ float position_error=0,target_speed_diff=0,current_speed_diff=0;
 float speed_left_inc=0,speed_right_inc=0;
 int16_t speed_left_tar=0,speed_right_tar=0;
 float speed_left = 0,speed_right = 0;
-int16_t speed_left_base = 67,speed_right_base = 60;                 //left 20 right 24           left 30 right 37      left 40    right 41  left67   right60
+
 
 int16_t difference=0;
 char Image_Ready=0;
 
-int16_t center_line_weight[9] = {0,1,8,9,9,3,2,1,1};
-int32_t center_line_weight_temp = 0;
+
+
 
 PositionalPID position_pid = {0};
 IncrementalPID speed_pid = {0};
@@ -81,59 +81,72 @@ int main (void)
     debug_init();                                                             	// 初始化默认 Debug UART
 	
 		Motor_Init(); 	
+		menu_init();
 	
     ips200_init(IPS200_TYPE);
 		if_mt9v03x_init();
 
 		Encoder_Init();
 		pit_ms_init(PIT, 20);                                                      // 初始化 PIT 为周期中断 20ms 周期
-		interrupt_set_priority(PIT_PRIORITY, 0);                                    // 设置 PIT 对周期中断的中断优先级为 0
+		interrupt_set_priority(PIT_PRIORITY, 0);         	                           // 设置 PIT 对周期中断的中断优先级为 0
 
 //		speed_left_tar = 20;
 //		speed_right_tar = 20;
-	  Motor_Left_SetSpeed(67);
-		Motor_Right_SetSpeed(60);
+	  Motor_Left_SetSpeed(speed_left_base);
+		Motor_Right_SetSpeed(speed_right_base);
  
-		PositionalPID_Init(&position_pid, 2.8f, 0, 1.6f); // 位置PID参数           1.6 0 0.8
-		IncrementalPID_Init(&speed_pid, 0.5f,0.04f, 0.15f);  // 速度PID参数	
+		PositionalPID_Init(&position_pid, p_kp,p_ki,p_kd); // 位置PID参数           1.6 0 0.8               2.6 0 2.8(67 60)
+//		IncrementalPID_Init(&speed_pid, 0.5f,0.04f, 0.15f);  // 速度PID参数	
+		
+		for(int i = 0;i < 11;i++)
+		{
+		center_line_weight_count += center_line_weight[i];
+		}
 
-//	  timer_init(TIM_2, TIMER_MS);                                                // 定时器使用 TIM_3 使用毫秒级计数
-//    timer_start(TIM_2);                                                         // 启动定时
-//    system_delay_ms(1000); 
     while(1)
     {
-//			if(timer_get(TIM_2) == 10)
-//			{
-//				speed_left_base = 0;
-//				speed_right_base = 0;
-//			PositionalPID_Init(&position_pid, 0.0f, 0, 0.0f); // 位置PID参数
-//			}
 
-			
+//////        show_process(NULL);			
 				ips_show_mt9v03x(*image_buffer);    	
-
+				if(prospect < 5)
+				{
+						speed_left_base = 0;
+						speed_right_base = 0;
+						PositionalPID_Init(&position_pid, 0.0f, 0, 0.0f); // 位置PID参数
+				}
 				current_speed_diff = (encoder_data_left - encoder_data_right);
-				ips200_show_int(0,170,element_name, 3);	
+//				ips200_show_int(0,170,element_name, 3);	
+//				ips200_show_int(0,200,test_data1, 3);				
+//				ips200_show_int(0,230,test_data2, 3);	
+//				ips200_show_int(0,260,test_data3, 3);	
+//				ips200_show_int(30,260,left_nomal_flag, 3);	
+//				ips200_show_int(60,260,right_nomal_flag, 3);	
+//				ips200_show_int(60,230,prospect, 3);				
+
 			
+//				ips200_show_int(0,200,left_variance, 3);	
+//				ips200_show_int(0,230,right_variance, 3);				
 //        printf("center_line_weight_temp \t\t%d .\r\n", center_line_weight_temp); 
 //			  printf("target_speed_diff \t\t%f .\r\n", target_speed_diff); 
-//			  printf("speed_left \t\t%d .\r\n", encoder_data_left); 			
-//				printf("speed_right \t\t%d .\r\n", encoder_data_right);
-//				printf("test_data1 \t\t%d .\r\n", test_data1);
+						printf("speed_left \t\t%d .\r\n", encoder_data_left); 			
+						printf("speed_right \t\t%d .\r\n", encoder_data_right);
+//				printf("prospect \t\t%d .\r\n", prospect);
 			
 				for(int i = 0;i < 9;i++)
 				{
-					center_line_weight_temp += center_line_weight[i]*center_line[20+i*10];	
+					center_line_weight_temp += center_line_weight[i]*center_line[10+i*10];	
 				}
 				center_line_weight_temp = 
-				center_line_weight_temp / 34;		
+				center_line_weight_temp / center_line_weight_count;		
 				
-				
+				ips200_show_int(0,170,center_line_weight_temp, 3);					
 				target_speed_diff = PositionalPID_Update(&position_pid,center_line_weight_temp, 94);                    //位置PID的结果与速度差的关系
 
 				speed_left = speed_left_base + target_speed_diff;
 				speed_right = speed_right_base - target_speed_diff;
 				
+				ips200_show_int(0,200,speed_left, 3);	
+				ips200_show_int(0,230,speed_right, 3);					
 //				speed_left_inc = IncrementalPID_Update(&speed_pid,speed_left_tar,encoder_data_left);
 //				speed_left += speed_left_inc;
 		    Motor_Left_SetSpeed((int16_t)speed_left);

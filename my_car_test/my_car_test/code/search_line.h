@@ -30,12 +30,17 @@ extern uint8_t right_edge_line[SEARCH_IMAGE_H];
 extern uint32_t if_count;
 
 extern char Image_Ready;
+extern uint8_t prospect;
 
+extern int8_t weight1,weight2,weight3,weight4,weight5,weight6,weight7,weight8,weight9,weight10,weight11;
+extern int16_t center_line_weight[11];
+extern int32_t center_line_weight_temp;
+extern int8_t center_line_weight_count;
 
 void Get_Reference_Point(const uint8_t *image);
 void Search_Reference_Col(const uint8_t *image);
 void Search_Line(const uint8_t *image);          //ËÑË÷ÈüµÀ±ß½ç
-
+void image_calculate_prospect(const uint8_t *image);
 
 
 #endif

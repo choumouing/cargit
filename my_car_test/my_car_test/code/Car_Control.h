@@ -7,6 +7,7 @@
 #define DIR_R               (A2 )
 #define PWM_R               (TIM5_PWM_CH4_A3)
 
+extern int16_t speed_left_base,speed_right_base; 
 void Motor_Init(void);       //DIR,PWM¿Ú³õÊ¼»¯
 void Motor_Left_SetSpeed(int16_t duty);
 void Motor_Right_SetSpeed(int16_t duty);

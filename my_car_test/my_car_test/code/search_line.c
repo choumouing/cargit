@@ -29,7 +29,12 @@ uint8_t remote_distance[SEARCH_IMAGE_W]={0};          //白点远端距离
 uint8_t left_edge_line[SEARCH_IMAGE_H]={0};          //左右边界
 uint8_t right_edge_line[SEARCH_IMAGE_H]={0};
 
+uint8_t prospect = 20;
 
+int8_t weight1=0,weight2=0,weight3=0,weight4=0,weight5=0,weight6=0,weight7=0,weight8=0,weight9=0,weight10=0,weight11=0;
+int16_t center_line_weight[11] = {0,1,1,5,9,9,9,5,1,1,0};
+int32_t center_line_weight_temp = 0;
+int8_t center_line_weight_count = 0;
 
 void Get_Reference_Point(const uint8_t *image)
 {
@@ -108,7 +113,7 @@ void Search_Reference_Col(const uint8_t *image)
 	{
 		reference_col_line[i]=reference_col;
 	}
-	
+	 
 }
 
 void Search_Line(const uint8_t *image)          //搜索赛道边界
@@ -245,3 +250,37 @@ void Search_Line(const uint8_t *image)          //搜索赛道边界
 	}
 }
 
+void image_calculate_prospect(const uint8_t *image)
+{
+	int col = SEARCH_IMAGE_W/2;
+	int16 temp1 = 0,temp2 = 0,temp3 = 0;
+	for	(int row = SEARCH_IMAGE_H-1;row > CONTRASTOFFSET;row--)
+	{    
+		temp1 = *(image+row + col * SEARCH_IMAGE_W);
+		temp2 = *(image + (row-CONTRASTOFFSET) + col * SEARCH_IMAGE_W);
+		
+		if(row == 5){   //计算对比度
+			prospect = SEARCH_IMAGE_H-(uint8)row;
+			break;
+		}
+		
+		if(temp1 < white_min_point){           //当前点是黑点
+			prospect = SEARCH_IMAGE_H-(uint8)row;
+			break;
+		}
+		
+		if(temp2 > white_max_point){           //对比点是白点
+			continue;
+		}
+		
+		
+		temp3 = (temp1 - temp2)*200/(temp1 + temp2);
+		
+		if(temp3 >reference_contrast_ratio ){   //计算对比度
+			prospect = SEARCH_IMAGE_H-(uint8)row;
+			break;
+		}
+	}
+//	ips200_show_int(96,224,prospect,4);
+
+}

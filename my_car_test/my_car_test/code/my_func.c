@@ -7,7 +7,7 @@
 
 uint8_t center_line[SEARCH_IMAGE_H]={0};
 //uint8_t weight[SEARCH_IMAGE_H]={1};
-
+uint16_t left_variance = 0,right_variance = 0;
 
 int myabs(int num)
 {
@@ -15,7 +15,27 @@ int myabs(int num)
 	else return (-num);
 }
 
+uint16_t calculate_variance(uint8_t array[], int size) 
+{
+    // Step 1: 计算平均值
+    float sum = 0;
+    for (int i = 0; i < size; i++) 
+		{
+        sum += array[i];
+    }
+    float mean = sum / size;
 
+    // Step 2: 计算方差
+    float variance = 0;
+    for (int i = 0; i < size; i++)
+		{
+        float diff = array[i] - mean;
+        variance += diff * diff;
+    }
+    variance /= size;
+
+    return (uint16_t)variance;
+}
 
 void Update_Line(const uint8_t *image)
 {
@@ -64,8 +84,10 @@ void ips_show_mt9v03x(uint8_t *image_buffer)
 				if(Image_Ready==1)
 				{
 					Update_Line(image_buffer);
-//					ips200_displayimage03x(image_buffer, 188, 120);            // 灰度图像显示 想要修改显示范围就修改本函数后两个参数 分别是显示宽度和高		
-					ips200_show_gray_image(0, 0, (const uint8 *)mt9v03x_image, MT9V03X_W, MT9V03X_H, 188, 120, 0);
+					image_calculate_prospect(image_buffer);
+					ips200_show_gray_image(0, 0, (const uint8 *)image_buffer, MT9V03X_W, MT9V03X_H, 188, 120, 0);
+					left_variance = calculate_variance(left_edge_line,120);
+					right_variance = calculate_variance(right_edge_line,120);					
 					for(uint16_t i=1;i<SEARCH_IMAGE_H;i++)
 						{
 							ips200_draw_point(left_edge_line[i],i,RGB565_RED);
