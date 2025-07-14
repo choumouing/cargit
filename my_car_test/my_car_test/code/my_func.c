@@ -85,16 +85,18 @@ void ips_show_mt9v03x(uint8_t *image_buffer)
 				{
 					Update_Line(image_buffer);
 					image_calculate_prospect(image_buffer);
-					ips200_show_gray_image(0, 0, (const uint8 *)image_buffer, MT9V03X_W, MT9V03X_H, 188, 120, 0);
-					left_variance = calculate_variance(left_edge_line,120);
-					right_variance = calculate_variance(right_edge_line,120);					
-					for(uint16_t i=1;i<SEARCH_IMAGE_H;i++)
-						{
-							ips200_draw_point(left_edge_line[i],i,RGB565_RED);
-							ips200_draw_point(right_edge_line[i],i,RGB565_BLUE);
-							ips200_draw_point(center_line[i],i,RGB565_GREEN);
-							ips200_draw_point(reference_col_line[i],i,RGB565_BROWN);							
-						}
+					Find_Edge_At_Reference_Col(image_buffer);
+//					left_variance = calculate_variance(left_edge_line,120);
+//					right_variance = calculate_variance(right_edge_line,120);
+//					
+//					ips200_show_gray_image(0, 0, (const uint8 *)image_buffer, MT9V03X_W, MT9V03X_H, 188, 120, 0);
+//					for(uint16_t i=1;i<SEARCH_IMAGE_H;i++)
+//						{
+//							ips200_draw_point(left_edge_line[i],i,RGB565_RED);
+//							ips200_draw_point(right_edge_line[i],i,RGB565_BLUE);
+//							ips200_draw_point(center_line[i],i,RGB565_GREEN);
+//							ips200_draw_point(reference_col_line[i],i,RGB565_BROWN);							
+//						}
 					Image_Ready=0;
 				}
 }

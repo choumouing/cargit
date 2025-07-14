@@ -136,6 +136,9 @@ void Flash_Read();
 void Flash_Write();
 void Flash_Erase();
 
+extern int p_kp,p_ki,p_kd;
+extern float s_kp,s_ki,s_kd;
+extern int speed_base; 
 
 #endif
 

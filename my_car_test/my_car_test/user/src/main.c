@@ -58,21 +58,19 @@ int16 encoder_data_right;
 
 uint8 image_buffer[MT9V03X_H][MT9V03X_W]={0};
 
-float position_error=0,target_speed_diff=0,current_speed_diff=0;
+float position_error=0,speed_diff=0,current_speed_diff=0;
 float speed_left_inc=0,speed_right_inc=0;
-int16_t speed_left_tar=0,speed_right_tar=0;
-float speed_left = 0,speed_right = 0;
-
+int16_t speed_left = 0,speed_right = 0;
+int16_t speed_left_base = 0,speed_right_base = 0;
+int16_t speed_left_final = 0,speed_right_final = 0;
 
 int16_t difference=0;
 char Image_Ready=0;
 
 
 
-
 PositionalPID position_pid = {0};
 IncrementalPID speed_pid = {0};
-IncrementalPID diff_pid = {0};
 
 	
 int main (void)
@@ -90,74 +88,72 @@ int main (void)
 		pit_ms_init(PIT, 20);                                                      // 初始化 PIT 为周期中断 20ms 周期
 		interrupt_set_priority(PIT_PRIORITY, 0);         	                           // 设置 PIT 对周期中断的中断优先级为 0
 
-//		speed_left_tar = 20;
-//		speed_right_tar = 20;
-	  Motor_Left_SetSpeed(speed_left_base);
-		Motor_Right_SetSpeed(speed_right_base);
- 
-		PositionalPID_Init(&position_pid, p_kp,p_ki,p_kd); // 位置PID参数           1.6 0 0.8               2.6 0 2.8(67 60)
-//		IncrementalPID_Init(&speed_pid, 0.5f,0.04f, 0.15f);  // 速度PID参数	
-		
-		for(int i = 0;i < 11;i++)
-		{
-		center_line_weight_count += center_line_weight[i];
-		}
-
     while(1)
     {
 
-//////        show_process(NULL);			
+				show_process(NULL);			
+				IncrementalPID_Init(&speed_pid,s_kp,s_ki,s_kd);	
+				PositionalPID_Init(&position_pid, p_kp,p_ki,p_kd);// 位置PID参数           1.6 0 0.8               2.6 0 2.8(67 60) 
 				ips_show_mt9v03x(*image_buffer);    	
 				if(prospect < 5)
 				{
-						speed_left_base = 0;
-						speed_right_base = 0;
-						PositionalPID_Init(&position_pid, 0.0f, 0, 0.0f); // 位置PID参数
+						speed_left_final = 0;
+						speed_right_final = 0;
+						p_kp = 0;
+						p_ki = 0;
+						p_kd = 0;
 				}
-				current_speed_diff = (encoder_data_left - encoder_data_right);
-//				ips200_show_int(0,170,element_name, 3);	
-//				ips200_show_int(0,200,test_data1, 3);				
-//				ips200_show_int(0,230,test_data2, 3);	
-//				ips200_show_int(0,260,test_data3, 3);	
-//				ips200_show_int(30,260,left_nomal_flag, 3);	
-//				ips200_show_int(60,260,right_nomal_flag, 3);	
-//				ips200_show_int(60,230,prospect, 3);				
 
-			
-//				ips200_show_int(0,200,left_variance, 3);	
-//				ips200_show_int(0,230,right_variance, 3);				
-//        printf("center_line_weight_temp \t\t%d .\r\n", center_line_weight_temp); 
-//			  printf("target_speed_diff \t\t%f .\r\n", target_speed_diff); 
-						printf("speed_left \t\t%d .\r\n", encoder_data_left); 			
-						printf("speed_right \t\t%d .\r\n", encoder_data_right);
-//				printf("prospect \t\t%d .\r\n", prospect);
-			
-				for(int i = 0;i < 9;i++)
+//					ips200_show_int(0,170,center_line_weight_temp, 3);	
+//					ips200_show_int(0,170,element_name, 3);	
+//					ips200_show_int(0,200,test_data1, 3);				
+//					ips200_show_int(0,230,test_data2, 3);	
+//					ips200_show_int(0,260,reference_col_line[2], 3);	
+//					ips200_show_int(30,260,left_nomal_flag, 3);	
+//					ips200_show_int(60,260,right_nomal_flag, 3);	
+		
+//					ips200_show_int(0,200,left_variance, 3);	
+//					ips200_show_int(0,230,right_variance, 3);	
+//			 	  ips200_show_int(0,200,speed_left, 3);	
+//				  ips200_show_int(0,230,speed_right, 3);	
+//      	  printf("center_line_weight_temp \t\t%d .\r\n", center_line_weight_temp); 
+//			 	  printf("target_speed_diff \t\t%f .\r\n", target_speed_diff); 
+//					printf("speed_left \t\t%d .\r\n", encoder_data_left); 			
+//					printf("speed_right \t\t%d .\r\n", encoder_data_right);
+//					printf("%d,%d\n", encoder_data_left,encoder_data_right); 							
+//				  printf("prospect \t\t%d .\r\n", prospect);
+				
+				
+				memcpy(center_line_weight_buffer,center_line_weight,sizeof(center_line_weight));	
+				for(int i = 0;i < 11;i++)
+		    {	
+					if((10+i*10) < top)
+					{
+						center_line_weight_buffer[i] = 0;
+					}
+		    }			
+				for(int i = 0;i < 11;i++)
 				{
-					center_line_weight_temp += center_line_weight[i]*center_line[10+i*10];	
+					center_line_weight_temp += center_line_weight_buffer[i]*center_line[10+i*10];	
+					center_line_weight_count += center_line_weight_buffer[i];
 				}
-				center_line_weight_temp = 
-				center_line_weight_temp / center_line_weight_count;		
+				center_line_weight_final = center_line_weight_temp / center_line_weight_count;		
+				center_line_weight_count = 0;
+				center_line_weight_temp = 0;
+				ips200_show_int(60,230,prospect, 3);
+				ips200_show_int(60,260,top, 3);		
+				ips200_show_int(60,290,center_line_weight_final, 3);				
 				
-				ips200_show_int(0,170,center_line_weight_temp, 3);					
-				target_speed_diff = PositionalPID_Update(&position_pid,center_line_weight_temp, 94);                    //位置PID的结果与速度差的关系
-
-				speed_left = speed_left_base + target_speed_diff;
-				speed_right = speed_right_base - target_speed_diff;
+				speed_diff = PositionalPID_Update(&position_pid,center_line_weight_final, 94);                    //位置PID的结果与速度差的关系
 				
-				ips200_show_int(0,200,speed_left, 3);	
-				ips200_show_int(0,230,speed_right, 3);					
-//				speed_left_inc = IncrementalPID_Update(&speed_pid,speed_left_tar,encoder_data_left);
-//				speed_left += speed_left_inc;
-		    Motor_Left_SetSpeed((int16_t)speed_left);
-//				speed_right_inc = IncrementalPID_Update(&speed_pid,speed_right_tar,encoder_data_right);
-//				speed_right += speed_right_inc;
-		    Motor_Right_SetSpeed((int16_t)speed_right);
-			
-
-
-//				current_speed_diff = (encoder_data_left -  encoder_data_right)/40; 
-//				speed_diff = IncrementalPID_Update(&speed_pid,target_speed_diff,current_speed_diff);
+				if(speed_diff > 4000)speed_diff = 4000;
+				if(speed_diff < -4000)speed_diff = -4000;			
+				speed_left_base = speed_base;
+				speed_right_base = speed_base;
+				speed_left_final = speed_left_base + speed_diff - (120 - prospect) * (120 - prospect) / 10;
+				speed_right_final = speed_right_base - speed_diff - (120 - prospect) * (120 - prospect) / 10;
+		    Motor_Left_SetSpeed((int16_t)speed_left_final);			
+		    Motor_Right_SetSpeed((int16_t)speed_right_final);
 			
 			  system_delay_ms(20);
     }
@@ -168,10 +164,10 @@ int main (void)
 void pit_handler (void)
 {
     encoder_data_left = encoder_get_count(ENCODER_QUADDEC_L);                  // 获取编码器计数
-		encoder_data_left = encoder_data_left / 7;
+		encoder_data_left = encoder_data_left;
     encoder_clear_count(ENCODER_QUADDEC_L);                                    	// 清空编码器计数
 		encoder_data_right = encoder_get_count(ENCODER_QUADDEC_R);
-		encoder_data_right = - (encoder_data_right / 7);
+		encoder_data_right = - (encoder_data_right);
 	  encoder_clear_count(ENCODER_QUADDEC_R); 
 	
 

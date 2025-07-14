@@ -4,6 +4,8 @@
 #include "search_line.h"
 #include "car_control.h"
 #include "pid.h"
+#include "my_func.h"
+
 
 //按键信号量及按键反馈信号量
 #ifdef  MENU_USE_RTT
@@ -599,39 +601,50 @@ void rand_color(){
         showstr(0,(SON_NUM+1)*16,"rand");
     }
 }
+
+
+
 //菜单空闲函数
 void NULL_FUN(){
 
 }
 
-
+int p_kp=75,p_ki=0,p_kd=10;
+float s_kp=0.3,s_ki=0.01,s_kd=0;
+int speed_base =1400;                 //left61right60//left102right100;
 
 void UNIT_SET(){
 	//菜单单元调参参数初始化
-    unit_param_set(&reference_contrast_ratio,TYPE_UINT16 , 1  ,3  ,3,NORMAL_PAR,"ratio");
-    unit_param_set(&weight1, TYPE_INT,1    ,2  ,0,NORMAL_PAR,"weight1");
-    unit_param_set(&weight2, TYPE_INT,1    ,2	 ,0,NORMAL_PAR,"weight2");
-    unit_param_set(&weight3, TYPE_INT,1    ,2  ,0,NORMAL_PAR,"weight3");
-    unit_param_set(&weight4, TYPE_INT,1    ,2  ,0,NORMAL_PAR,"weight4");
-    unit_param_set(&weight5, TYPE_INT,1    ,2  ,0,NORMAL_PAR,"weight5");
-    unit_param_set(&weight6, TYPE_INT,1    ,2  ,0,NORMAL_PAR,"weight6");
-    unit_param_set(&weight7, TYPE_INT,1    ,2  ,0,NORMAL_PAR,"weight7");
-    unit_param_set(&weight8, TYPE_INT,1    ,2  ,0,NORMAL_PAR,"weight8");	
-    unit_param_set(&weight9, TYPE_INT,1    ,2  ,0,NORMAL_PAR,"weight9");
-    unit_param_set(&weight10,TYPE_INT,1	   ,2  ,0,NORMAL_PAR,"weight10");
-    unit_param_set(&weight11,TYPE_INT,1    ,2  ,0,NORMAL_PAR,"weight11");
-    unit_param_set(&speed_left_base,TYPE_INT,1	   ,3  ,0,NORMAL_PAR,"speed_left_base");
-    unit_param_set(&speed_right_base,TYPE_INT,1    ,3  ,0,NORMAL_PAR,"speed_left_base");	
-    unit_param_set(&p_kp,TYPE_FLOAT,0.1	   ,2  ,2,NORMAL_PAR,"p_kp");
-    unit_param_set(&p_ki,TYPE_FLOAT,0.1    ,2  ,2,NORMAL_PAR,"p_ki");	
-    unit_param_set(&p_kd,TYPE_FLOAT,0.1    ,2  ,2,NORMAL_PAR,"p_kd");		
+//    unit_param_set(&reference_contrast_ratio,TYPE_INT, 1  ,3  ,3,NORMAL_PAR,"ratio");
+//    unit_param_set(&weight1, TYPE_INT,1    ,2  ,0,NORMAL_PAR,"weight1");
+//    unit_param_set(&weight2, TYPE_INT,1    ,2	 ,0,NORMAL_PAR,"weight2");
+//    unit_param_set(&weight3, TYPE_INT,1    ,2  ,0,NORMAL_PAR,"weight3");
+//    unit_param_set(&weight4, TYPE_INT,1    ,2  ,0,NORMAL_PAR,"weight4");
+//    unit_param_set(&weight5, TYPE_INT,1    ,2  ,0,NORMAL_PAR,"weight5");
+//    unit_param_set(&weight6, TYPE_INT,1    ,2  ,0,NORMAL_PAR,"weight6");
+//    unit_param_set(&weight7, TYPE_INT,1    ,2  ,0,NORMAL_PAR,"weight7");
+//    unit_param_set(&weight8, TYPE_INT,1    ,2  ,0,NORMAL_PAR,"weight8");	
+//    unit_param_set(&weight9, TYPE_INT,1    ,2  ,0,NORMAL_PAR,"weight9");
+//    unit_param_set(&weight10,TYPE_INT,1	   ,2  ,0,NORMAL_PAR,"weight10");
+//    unit_param_set(&weight11,TYPE_INT,1    ,2  ,0,NORMAL_PAR,"weight11");
+	  unit_param_set(&p_kp,TYPE_INT,1	   ,3  ,2,NORMAL_PAR,"p_kp");
+    unit_param_set(&p_ki,TYPE_INT,1    ,3  ,2,NORMAL_PAR,"p_ki");	
+    unit_param_set(&p_kd,TYPE_INT,1    ,3  ,2,NORMAL_PAR,"p_kd");	
+	  unit_param_set(&s_kp,TYPE_FLOAT,0.01	   ,2  ,2,NORMAL_PAR,"s_kp");
+    unit_param_set(&s_ki,TYPE_FLOAT,0.01    ,2  ,2,NORMAL_PAR,"s_ki");	
+    unit_param_set(&s_kd,TYPE_FLOAT,0.01    ,2  ,2,NORMAL_PAR,"s_kd");		
+    unit_param_set(&speed_base,TYPE_INT,100    ,4  ,0,NORMAL_PAR,"spe");	
+//    unit_param_set(&speed_left_base, TYPE_INT,10	    ,4  ,0,NORMAL_PAR,"spe_l_m");
+//    unit_param_set(&speed_right_base,TYPE_INT,10     ,4  ,0,NORMAL_PAR,"spe_r_m");	
 	
 }
 
 void FUN_INIT(){
-	//菜单单元函数指针初始化
-	fun_init(NULL_FUN	,"NULL_FUN1");
+	//菜单单元函数指针初始化;
 	fun_init(day_night	,"day_night");
 	fun_init(rand_color	,"rand_color");
 	fun_init(NULL_FUN	,"NULL_FUN2");
 }
+
+
+

@@ -127,17 +127,18 @@ void Judging_Elements(uint8_t *arrary_value1,uint8_t *arrary_value2)
 	{
         case STRAIGHT:
             if (Find_Cross_Ready(arrary_value1,arrary_value2))element_name = CROSS_READY;
-            else if (FindIsland_Ready(arrary_value1,arrary_value2)) element_name = ISLAND_READY;
+//            else if (FindIsland_Ready(arrary_value1,arrary_value2)) element_name = ISLAND_READY;
 						else element_name = STRAIGHT;
 							break;
         case CROSS_READY:
-            if (Find_Cross_In(arrary_value1,arrary_value2)) element_name = CROSS_IN;
+//            if (Find_Cross_In(arrary_value1,arrary_value2)) element_name = CROSS_IN;
+				    if(!Find_Cross_Ready(arrary_value1,arrary_value2))element_name = STRAIGHT;
 						else element_name = CROSS_READY;
 							break;
-				case CROSS_IN:
-						if (!Find_Cross_In(arrary_value1,arrary_value2)) element_name = STRAIGHT;
-						else element_name = CROSS_IN;
-							break;
+//				case CROSS_IN:
+//						if (!Find_Cross_In(arrary_value1,arrary_value2)) element_name = STRAIGHT;
+//						else element_name = CROSS_IN;
+//							break;
         case ISLAND_READY:
 					if(FindIsland_In(arrary_value1,arrary_value2)) element_name = ISLAND_IN;
 					else element_name = ISLAND_READY;

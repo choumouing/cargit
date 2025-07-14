@@ -4,7 +4,7 @@
 #include "search_line.h"
 #include "my_func.h"
 
-float p_kp=2.0,p_ki=0,p_kd=1.8;
+
 
 // 位置式PID初始化
 void PositionalPID_Init(PositionalPID* pid, float Kp, float Ki, float Kd) {
