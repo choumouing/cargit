@@ -10,7 +10,7 @@
 
 #define REFRENCEROW      5              //参考点统计行数
 #define REFERENCE_COL       80         //参考点统计列数
-#define SEARCHRANGE     10         //搜线半径
+#define SEARCHRANGE     0         //搜线半径
 #define STOPROW         0        //搜线停止行
 #define CONTRASTOFFSET    3     //搜线对比偏移
 
@@ -60,17 +60,68 @@ void Get_Reference_Point(const uint8_t *image)
     
     reference_point = templ / area;
     white_max_point = (uint8_t)func_limit_ab((int32_t)reference_point * WHITEMAXMUL / 10,160,255);
-    white_min_point = (uint8_t)func_limit_ab((int32_t)reference_point * WHITEMINMUL / 10, BLACKPOINT,100);
+    white_min_point = (uint8_t)func_limit_ab((int32_t)reference_point * WHITEMINMUL / 10, BLACKPOINT,95);
 }
 
-void Search_Reference_Col(const uint8_t *image) {
-    for (int col = 0; col < SEARCH_IMAGE_W; col++) {
+//void Search_Reference_Col(const uint8_t *image) {
+//    for (int col = 0; col < SEARCH_IMAGE_W; col++) {
+//        remote_distance[col] = SEARCH_IMAGE_H - 1;
+//    }
+
+//    // 列搜索（步长CONTRASTOFFSET）
+//    for (int col = CONTRASTOFFSET; col < SEARCH_IMAGE_W; col += CONTRASTOFFSET) {
+//        for (int row = SEARCH_IMAGE_H - 1; row >= STOPROW + CONTRASTOFFSET; row -= CONTRASTOFFSET) {
+	
+//            uint8_t temp1 = *(image + row * SEARCH_IMAGE_W + col);
+//            uint8_t temp2 = *(image + (row - CONTRASTOFFSET) * SEARCH_IMAGE_W + col);
+//            
+//            // 终止条件1：到达最小行
+//            if (row == STOPROW + CONTRASTOFFSET) {
+//                remote_distance[col] = row;
+//                break;
+//            }
+//            
+//            // 终止条件2：当前点过暗
+//            if (temp1 < white_min_point) {
+//                remote_distance[col] = row;
+//                break;
+//            }
+//            
+//            // 终止条件3：对比度跳变
+//            int16_t contrast = (temp1 - temp2) * 200 / (temp1 + temp2);
+//            if (contrast > reference_contrast_ratio) {
+//                remote_distance[col] = row;
+//                break;
+//            }
+//        }
+//    }
+//    
+//    // 找最远白列（最小行号）
+//    uint8_t min_row = remote_distance[0];
+//    reference_col = 0;
+//    for (int col = 0; col < SEARCH_IMAGE_W; col++) {
+//        if (remote_distance[col] < min_row) {
+//            min_row = remote_distance[col];
+//            reference_col = col;
+//        }
+//    }
+//}
+
+void Search_Reference_Col(const uint8_t *image) 
+		{
+    // 记录是否找到有效列
+    uint8_t valid_col_found = 0;
+    
+    for (int col = 0; col < SEARCH_IMAGE_W; col++) 
+		{
         remote_distance[col] = SEARCH_IMAGE_H - 1;
     }
 
     // 列搜索（步长CONTRASTOFFSET）
-    for (int col = CONTRASTOFFSET; col < SEARCH_IMAGE_W; col += CONTRASTOFFSET) {
-        for (int row = SEARCH_IMAGE_H - 1; row >= STOPROW + CONTRASTOFFSET; row -= CONTRASTOFFSET) {
+    for (int col = CONTRASTOFFSET; col < SEARCH_IMAGE_W; col += CONTRASTOFFSET)
+		{
+        for (int row = SEARCH_IMAGE_H - 1; row >= STOPROW + CONTRASTOFFSET; row -= CONTRASTOFFSET)
+				{
             uint8_t temp1 = *(image + row * SEARCH_IMAGE_W + col);
             uint8_t temp2 = *(image + (row - CONTRASTOFFSET) * SEARCH_IMAGE_W + col);
             
@@ -97,12 +148,26 @@ void Search_Reference_Col(const uint8_t *image) {
     
     // 找最远白列（最小行号）
     uint8_t min_row = remote_distance[0];
-    reference_col = 0;
-    for (int col = 0; col < SEARCH_IMAGE_W; col++) {
-        if (remote_distance[col] < min_row) {
+    uint8_t temp_col = 0;
+    
+    for (int col = 0; col < SEARCH_IMAGE_W; col++) 
+		{
+        if (remote_distance[col] < min_row) 
+				{
             min_row = remote_distance[col];
-            reference_col = col;
+            temp_col = col;
+            valid_col_found = 1;  // 标记找到有效列
         }
+    }
+    
+    // 修改点：只有找到有效列才更新参考列
+    if (valid_col_found)
+		{
+        reference_col = temp_col;
+        last_reference_col = temp_col;  // 更新上一次有效参考列
+    } else 
+		{
+        reference_col = last_reference_col;  // 使用上一次的参考列
     }
 }
 
@@ -131,7 +196,8 @@ void Search_Line(const uint8_t *image) {
             int leftendcol = (left_search_time == 2) ? reference_col - SEARCHRANGE : col_min;
             leftendcol = (leftendcol < col_min) ? col_min : leftendcol;
             
-            for (int col = leftstartcol; col >= leftendcol; col--) {
+            for (int col = leftstartcol; col >= leftendcol; col--) 
+						{
                 // 列越界检查
                 if (col - CONTRASTOFFSET < col_min) continue;
                 
@@ -139,9 +205,11 @@ void Search_Line(const uint8_t *image) {
                 uint8_t temp2 = *(p + col - CONTRASTOFFSET);
                 
                 // 情况1：起点即黑点（丢失边界）
-                if (temp1 < white_min_point && col == reference_col && !leftstop) {
+                if (temp1 < white_min_point && col == reference_col && !leftstop) 
+								{
                     leftstop = 1;
-                    for (int r = row; r >= row_min; r--) {
+                    for (int r = row; r >= row_min; r--) 
+									  {
                         left_edge_line[r] = col_min;
                     }
                     left_search_time = 0;
@@ -160,11 +228,12 @@ void Search_Line(const uint8_t *image) {
                 
                 // 情况4：对比度跳变检测
                 int16_t contrast = (temp1 - temp2) * 200 / (temp1 + temp2 + 1);
-                if (contrast > reference_contrast_ratio || col == col_min) {
+                if (contrast > reference_contrast_ratio || col == col_min) 
+								{
                     left_edge_line[row] = (col - CONTRASTOFFSET < col_min) ? col_min : (col - CONTRASTOFFSET);
                     left_search_time = 0; // 成功找到边界
                     break;
-                }
+                 }
             }
             left_search_time--;
         } while (left_search_time > 0 && !leftstop);
@@ -215,6 +284,9 @@ void Search_Line(const uint8_t *image) {
         } while (right_search_time > 0 && !rightstop);
     }
 }
+
+
+
 
 void image_calculate_prospect(const uint8_t *image)
 {

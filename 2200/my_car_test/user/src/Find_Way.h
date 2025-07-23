@@ -28,6 +28,7 @@ extern float circle_gyro_z;
 extern float angle_temp;
 extern int encoder_temp_left,encoder_temp_right;
 extern uint8 cross_flag;
+extern uint8 banmaxian_flag;
 
 uint8_t find_jump_point(uint8_t *arrary_value, uint8_t num0, uint8_t num1, uint8_t jump_num, uint8_t model);
 void connect_point(uint8_t *arrary_value,uint8_t num0,uint8_t num1);
@@ -52,8 +53,5 @@ uint8 find_circle_point_right(uint8_t *edge_line,uint8 down_num,uint8 up_num,uin
 //void calculate_half_way();
 uint8_t find_circle_down_jump_point_right(uint8_t *arrary_value, uint8_t num0, uint8_t num1);
 uint8_t find_circle_down_jump_point_left(uint8_t *arrary_value, uint8_t num0, uint8_t num1);
-void stretch_point(uint8 *array_value, uint8 num, uint8 direction);
-uint8 find_right_jump_point(uint8 down_num, uint8 up_num, uint8 model);
-uint8 find_left_jump_point(uint8 down_num, uint8 up_num, uint8 model);
-void cross_analysis(void);
+void banmaxian_stop(const uint8_t *image);
 #endif

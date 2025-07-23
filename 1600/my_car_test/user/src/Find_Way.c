@@ -4,8 +4,12 @@
 #include "my_func.h"
 #include "zf_device_mpu6050.h"
 #include "globals.h"
-#include "auto_menu.h"
+#include "zf_common_function.h"
+
+#define STRETCH_NUM       80          //补线延伸长度
+//#include "auto_menu.h"
  
+int circle_flag = 0;
 uint8_t element_name = 0;
 int16_t test_data1 = 0,test_data2 = 0,test_data3 = 0;
 int16_t left_nomal_flag = 0,right_nomal_flag = 0;
@@ -15,6 +19,8 @@ float circle_gyro_z = 0;
 float angle_temp = 0;
 int encoder_temp_left = 0;
 int encoder_temp_right = 0;
+uint8 cross_flag = 0;                    //十字标志位
+uint8 banmaxian_flag = 0;
 
 uint8_t big_half_line[SEARCH_IMAGE_H]={           
 21,21,22,23,23,24,25,25,26,27,
@@ -88,18 +94,6 @@ uint8_t find_jump_point(uint8_t *arrary_value, uint8_t num0, uint8_t num1, uint8
 	return 0;
 }
 
-//uint8_t find_circle_up_jump_point(uint8_t *arrary_value, uint8_t num0, uint8_t num1)
-//{	
-//		for(int i = num1;i <num0;i++)
-//		{
-//				if(
-// 
-//				)
-//				return i;
-//			}
-//	return 0;
-//}
-
 uint8_t find_circle_down_jump_point_right(uint8_t *arrary_value, uint8_t num0, uint8_t num1)
 {
 	for(int i = num0;i > num1;i--)
@@ -163,7 +157,7 @@ void calculate_half_way()
 	
 }
 
-uint8 image_find_circle_point_right(uint8_t *edge_line,uint8 down_num,uint8 up_num,uint8 model) //model == 1从小到大 model == 0从大到小
+uint8 find_circle_point_right(uint8_t *edge_line,uint8 down_num,uint8 up_num,uint8 model) //model == 1从小到大 model == 0从大到小
 {
 	uint8 temp_jump_point = 0;
 	if(model)
@@ -201,7 +195,7 @@ uint8 image_find_circle_point_right(uint8_t *edge_line,uint8 down_num,uint8 up_n
 	return 0;
 }
 
-uint8 image_find_circle_point_left(uint8_t *edge_line,uint8 down_num,uint8 up_num,uint8 model) //model == 1从小到大 model == 0从大到小
+uint8 find_circle_point_left(uint8_t *edge_line,uint8 down_num,uint8 up_num,uint8 model) //model == 1从小到大 model == 0从大到小
 {
 	uint8 temp_jump_point = 0;
 	if(model)
@@ -244,14 +238,14 @@ void get_center_weight()
 	{
 		center_line_weight_buffer[0] = 0;
 		center_line_weight_buffer[1] = 0;
-		center_line_weight_buffer[2] = 0;
-		center_line_weight_buffer[3] = 1;
-		center_line_weight_buffer[4] = 3;
-		center_line_weight_buffer[5] = 5;
-		center_line_weight_buffer[6] = 9;
-		center_line_weight_buffer[7] = 5;
-		center_line_weight_buffer[8] = 3;
-		center_line_weight_buffer[9] = 1;		
+		center_line_weight_buffer[2] = 1;
+		center_line_weight_buffer[3] = 3;
+		center_line_weight_buffer[4] = 5;
+		center_line_weight_buffer[5] = 9;
+		center_line_weight_buffer[6] = 5;
+		center_line_weight_buffer[7] = 3;
+		center_line_weight_buffer[8] = 1;
+		center_line_weight_buffer[9] = 0;		
 		center_line_weight_buffer[10] = 0;	
 
 	}
@@ -306,7 +300,7 @@ void FindIsland_Ready_Right()
 		if(end_point)
 		{
 //			island_temp_flag = 40;
-			up_point = image_find_circle_point_right(right_edge_line,end_point - 5,0,1 );
+			up_point = find_circle_point_right(right_edge_line,end_point - 5,0,1 );
 		}
 		if(end_point)
 		{
@@ -318,7 +312,7 @@ void FindIsland_Ready_Right()
 	}
 
 }
-void FindIsland_Ready_left()
+void FindIsland_Ready_Left()
 {
 	if(island_temp_flag == 0)
 	{
@@ -344,7 +338,7 @@ void FindIsland_Ready_left()
 		if(end_point)
 		{
 //			island_temp_flag = 40;
-			up_point = image_find_circle_point_left(left_edge_line,end_point - 5,0,1 );
+			up_point = find_circle_point_left(left_edge_line,end_point - 5,0,1 );
 		}
 		if(end_point)
 		{
@@ -360,7 +354,7 @@ void FindIsland_Ready_left()
 
 void FinfIsland_In_Right()
 {
-	if(island_temp_flag == 1 && encoder_temp_left > 2000)
+	if(island_temp_flag == 1 && encoder_temp_left > 10000)
 	{
 		island_temp_flag = 2;
 		center_line_mode = 0;		
@@ -368,7 +362,7 @@ void FinfIsland_In_Right()
 }
 void FinfIsland_In_Left()
 {
-	if(island_temp_flag == 1 && encoder_temp_right > 2000)
+	if(island_temp_flag == 1 && encoder_temp_right > 10000)
 	{
 		island_temp_flag = 2;
 		center_line_mode = 0;		
@@ -378,7 +372,7 @@ void FinfIsland_In_Left()
 
 void FindIsland_Ing_Right()
 {
- if(island_temp_flag == 2 && encoder_temp_left > 3200)
+ if(island_temp_flag == 2 && encoder_temp_left > 21000)
  {
 	 island_temp_flag = 3;
 	 center_line_mode = 0;		 
@@ -387,7 +381,7 @@ void FindIsland_Ing_Right()
 
 void FindIsland_Ing_Left()
 {
- if(island_temp_flag == 2 && encoder_temp_right > 3200)
+ if(island_temp_flag == 2 && encoder_temp_right > 21000)
  {
 	 island_temp_flag = 3;
 	 center_line_mode = 0;		 
@@ -397,7 +391,7 @@ void FindIsland_Ing_Left()
 
 void FindIsland_Outready_Right()
 {
-	if(island_temp_flag == 3 && encoder_temp_left > 7300)
+	if(island_temp_flag == 3 && encoder_temp_left > 38000)
 	{
 		island_temp_flag = 4;
 		center_line_mode = 0;	
@@ -405,7 +399,7 @@ void FindIsland_Outready_Right()
 }
 void FindIsland_Outready_Left()
 {
-	if(island_temp_flag == 3 && encoder_temp_right > 7300)
+	if(island_temp_flag == 3 && encoder_temp_right > 38000)
 	{
 		island_temp_flag = 4;
 		center_line_mode = 0;	
@@ -415,7 +409,7 @@ void FindIsland_Outready_Left()
 
 void FindIsland_Out_Right()
 {
-	if(island_temp_flag == 4 && encoder_temp_left > 9500)
+	if(island_temp_flag == 4 && encoder_temp_left > 59000)
 	{
 		island_temp_flag = 5;
 		center_line_mode = 2;	
@@ -423,7 +417,7 @@ void FindIsland_Out_Right()
 }
 void FindIsland_Out_Left()
 {
-	if(island_temp_flag == 4 && encoder_temp_right > 9500)
+	if(island_temp_flag == 4 && encoder_temp_right > 59000)
 	{
 		island_temp_flag = 5;
 		center_line_mode = 1;	
@@ -433,7 +427,7 @@ void FindIsland_Out_Left()
 
 void FindIsland_Complete_Right()
 {
-	if(island_temp_flag == 5 && encoder_temp_left > 10000)
+	if(island_temp_flag == 5 && encoder_temp_left > 62000)
 	{
 		island_temp_flag = 0;
 		center_line_mode = 0;	
@@ -441,7 +435,7 @@ void FindIsland_Complete_Right()
 }
 void FindIsland_Complete_Left()
 {
-	if(island_temp_flag == 5 && encoder_temp_right > 10000)
+	if(island_temp_flag == 5 && encoder_temp_right > 62000)
 	{
 		island_temp_flag = 0;
 		center_line_mode = 0;	
@@ -450,7 +444,7 @@ void FindIsland_Complete_Left()
 
 void circle_state()
 {
-	if(circle_flag == 1)
+	if(circle_flag == 1)              //右圆环
 	{
 		FindIsland_Ready_Right();
 		FinfIsland_In_Right();
@@ -459,7 +453,7 @@ void circle_state()
 		FindIsland_Out_Right();
 		FindIsland_Complete_Right();
 	}
-	else if(circle_flag == -1)
+	else if(circle_flag == -1)       //左圆环
 	{
 		FindIsland_Ready_Left();
 		FinfIsland_In_Left();
@@ -539,15 +533,42 @@ void Connect_Cross_In(uint8_t *arrary_value1,uint8_t *arrary_value2)
 		}
 }
 
+
+
 void Connect_Circle_In()
 {
-	for(int i = 0;i < 120;i++)
+	if(circle_flag == 1)
 	{
-		left_edge_line[i] = 188 - 1.5 * i;
+		for(int i = 0;i < 120;i++)
+		{
+			left_edge_line[i] = 188 - 1.5 * i - 20;            //-20需要早点转,改前瞻或者第一个编码器,买没有测好/不减20会有一个明显摆头
+		if(left_edge_line[i] > 188)left_edge_line[i] = 188;
+		if(left_edge_line[i] < 0)left_edge_line[i] = 0;
+		}
 	}
-	for(int i = 180;i < 188;i++)
+	else if(circle_flag == -1)
 	{
-		left_edge_line[i] = 0;
+		for(int i = 0;i < 120;i++)
+		{
+			right_edge_line[i] = 1.5 * i + 20;
+		if(right_edge_line[i] > 188)right_edge_line[i] = 188;
+		if(right_edge_line[i] < 0)right_edge_line[i] = 0;
+		}		
 	}
 }
 
+void banmaxian_stop(const uint8_t *image)
+{
+	int16 temp1 = 0,temp2 = 0,temp3 = 0,count = 0;
+	for(int i = 0; i < SEARCH_IMAGE_W - 3; i+=3)
+	{
+		for( int j = 79; j < 81; j++)
+		{
+			temp1 = *(image + j * SEARCH_IMAGE_W + i);
+			temp2 = *(image + j * SEARCH_IMAGE_W + i + 3);
+			temp3 = (temp1 - temp2)*200/(temp1 + temp2);
+			if(temp3 > reference_contrast_ratio)count ++;
+		}
+	}
+	if(count > 20)banmaxian_flag ++;
+}

@@ -20,6 +20,7 @@ float angle_temp = 0;
 int encoder_temp_left = 0;
 int encoder_temp_right = 0;
 uint8 cross_flag = 0;                    //十字标志位
+uint8 banmaxian_flag = 0;
 
 uint8_t big_half_line[SEARCH_IMAGE_H]={           
 21,21,22,23,23,24,25,25,26,27,
@@ -532,136 +533,7 @@ void Connect_Cross_In(uint8_t *arrary_value1,uint8_t *arrary_value2)
 		}
 }
 
-void stretch_point(uint8 *array_value, uint8 num, uint8 direction)
-{
-    if((num + 5 >= SEARCH_IMAGE_H) || (num - 5 <= 0))
-        return;
-    
-    float temp_slope = 0;
-    float point_1 = (float)array_value[num];
-    
-    if(direction){
-        float point_2 = (float)array_value[num + 5];
-        temp_slope = (point_1 - point_2) / 5;
-        for(int i = 0; i < STRETCH_NUM && num - i >= 5; i++){
-            array_value[num - i] = func_limit_ab((int8)(temp_slope * i) + array_value[num], 0, SEARCH_IMAGE_W - 1);
-        }
-    }
-    else{
-        float point_2 = (float)array_value[num - 5];
-        temp_slope = (point_1 - point_2) / 5;
-        for(int i = 0; i < STRETCH_NUM && num + i <= SEARCH_IMAGE_H - 1; i++){
-            array_value[num + i] = func_limit_ab((int8)(temp_slope * i) + array_value[num], 0, SEARCH_IMAGE_W - 1);
-        }
-    }
-}
 
-uint8 find_right_jump_point(uint8 down_num, uint8 up_num, uint8 model)
-{
-    uint8 temp_jump_point = 0;
-    
-    if(model){
-        temp_jump_point = down_num;
-        for(int i = 0; i < down_num - up_num; i++){
-            if(right_edge_line[down_num - i] - right_edge_line[down_num - i - 5] <= -8 &&
-               right_edge_line[down_num - i] - right_edge_line[down_num - i - 6] <= -8 &&
-               right_edge_line[down_num - i] - right_edge_line[down_num - i - 7] <= -8){
-                temp_jump_point = (uint8)(down_num - i) + 3;
-                return temp_jump_point;
-            }
-        }
-    }
-    else{
-        temp_jump_point = up_num;
-        for(int i = 0; i < down_num - up_num; i++){
-            if(right_edge_line[up_num + i] - right_edge_line[up_num + i + 5] <= -8 &&
-               right_edge_line[up_num + i] - right_edge_line[up_num + i + 6] <= -8 &&
-               right_edge_line[up_num + i] - right_edge_line[up_num + i + 7] <= -8){
-                temp_jump_point = (uint8)(up_num + i) - 3;
-                return temp_jump_point;
-            }
-        }
-    }
-    return 0;
-}
-
-uint8 find_left_jump_point(uint8 down_num, uint8 up_num, uint8 model)
-{
-    uint8 temp_jump_point = 0;
-    
-    if(model){
-        temp_jump_point = down_num;
-        for(int i = 0; i < down_num - up_num; i++){
-            if(left_edge_line[down_num - i] - left_edge_line[down_num - i - 5] >= 8 &&
-               left_edge_line[down_num - i] - left_edge_line[down_num - i - 6] >= 8 &&
-               left_edge_line[down_num - i] - left_edge_line[down_num - i - 7] >= 8){
-                temp_jump_point = (uint8)(down_num - i) + 3;
-                return temp_jump_point;
-            }
-        }
-    }
-    else{
-        temp_jump_point = up_num;
-        for(int i = 0; i < down_num - up_num; i++){
-            if(left_edge_line[up_num + i] - left_edge_line[up_num + i + 5] >= 8 &&
-               left_edge_line[up_num + i] - left_edge_line[up_num + i + 6] >= 8 &&
-               left_edge_line[up_num + i] - left_edge_line[up_num + i + 7] >= 8){
-                temp_jump_point = (uint8)(up_num + i) - 3;
-                return temp_jump_point;
-            }
-        }
-    }
-    return 0;
-}
-
-void cross_analysis(void)
-{
-    uint32 track_width = 0;
-    uint8 start_point = 0, end_point = 0;
-    
-    for(int i = (SEARCH_IMAGE_H * 2 / 3); i > (SEARCH_IMAGE_H / 3); i--)
-		{
-        track_width += (right_edge_line[i] - left_edge_line[i]);
-    }
-    
-    if(!cross_flag && track_width > (SEARCH_IMAGE_W * (SEARCH_IMAGE_H * 4 / 15))){
-        cross_flag = 1;
-    }
-    
-    if(cross_flag == 1)
-		{
-        start_point = find_left_jump_point(SEARCH_IMAGE_H - 5, SEARCH_IMAGE_H/4, 0);
-        end_point = find_left_jump_point(SEARCH_IMAGE_H - 5, SEARCH_IMAGE_H/3, 1);
-        
-        if(end_point && start_point){
-            connect_point(left_edge_line, end_point, start_point);
-        }
-        if(end_point & !start_point){
-            stretch_point(left_edge_line, end_point, 1);
-        }
-        if(!end_point && start_point){
-            stretch_point(left_edge_line, start_point, 0);
-        }
-        
-        start_point = find_right_jump_point(SEARCH_IMAGE_H - 5, SEARCH_IMAGE_H/4, 0);
-        end_point = find_right_jump_point(SEARCH_IMAGE_H - 5, SEARCH_IMAGE_H/3, 1);
-        
-        if(end_point && start_point){
-            connect_point(right_edge_line, end_point, start_point);
-        }
-        if(end_point && !start_point){
-            stretch_point(right_edge_line, end_point, 1);
-        }
-        if(!end_point && start_point){
-            stretch_point(right_edge_line, start_point, 0);
-        }
-        
-        if(track_width < (SEARCH_IMAGE_W * (SEARCH_IMAGE_H * 1 / 5)))
-				{
-            cross_flag = 0;
-        }
-    }
-}
 
 void Connect_Circle_In()
 {
@@ -685,3 +557,18 @@ void Connect_Circle_In()
 	}
 }
 
+void banmaxian_stop(const uint8_t *image)
+{
+	int16 temp1 = 0,temp2 = 0,temp3 = 0,count = 0;
+	for(int i = 0; i < SEARCH_IMAGE_W - 3; i+=3)
+	{
+		for( int j = 79; j < 81; j++)
+		{
+			temp1 = *(image + j * SEARCH_IMAGE_W + i);
+			temp2 = *(image + j * SEARCH_IMAGE_W + i + 3);
+			temp3 = (temp1 - temp2)*200/(temp1 + temp2);
+			if(temp3 > reference_contrast_ratio)count ++;
+		}
+	}
+	if(count > 20)banmaxian_flag ++;
+}

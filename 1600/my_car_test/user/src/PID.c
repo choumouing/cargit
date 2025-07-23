@@ -5,7 +5,7 @@
 #include "my_func.h"
 #include "zf_device_mpu6050.h"
 
-float gyro_z = 0;
+float gyro_z = 0,prev_d = 0;
 // 位置式PID初始化
 void PositionalPID_Init(PositionalPID* pid, float Kp, float Ki, float Kd_d,float Kd_a) {
     pid->Kp = Kp;
@@ -40,15 +40,16 @@ float PositionalPID_Update(PositionalPID* pid, float target, float current)
     
     // 微分项 (当前误差-上次误差)
     float derivative = err - pid->prev_err;
-    
+
     // PID输出计算
     float output = pid->Kp * err 
                 + pid->Ki * pid->integral 
-                + pid->Kd_a * (- mpu6050_gyro_z) / 100 + pid->Kd_d * derivative;
+                + (1 - 0.7) * ( pid->Kd_a * (- mpu6050_gyro_z) / 100 + pid->Kd_d * derivative ) + 0.7 * prev_d;
     
     // 更新历史误差
     pid->prev_err = err;
-    
+    prev_d = (1 - 0.7) * ( pid->Kd_a * (- mpu6050_gyro_z) / 1000 + pid->Kd_d * derivative ) + 0.7 * prev_d;
+		
     return output;
 }
 

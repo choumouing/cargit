@@ -1,7 +1,7 @@
 #ifndef __PID_H__
 #define __PID_H__
 
-extern float gyro_z;
+extern float gyro_z,prev_d;
 // 位置式PID结构
 typedef struct 
 {

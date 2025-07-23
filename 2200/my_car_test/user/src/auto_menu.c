@@ -610,11 +610,15 @@ void NULL_FUN(){
 
 }
 
-int p_kp=45,p_ki=0,p_kd_d =10;
-float p_kd_a = 0.1;
+int p_kp=90,p_ki=0;
+float p_kd_a = 0.00,p_kd_d =0.2;
+
+int p_kp_s=35,p_ki_s=0;
+float p_kd_a_s= 0.00,p_kd_d_s =0;
+
 float s_kp=2,s_ki=0.05,s_kd=1.5;
-int slow_flag = 0;
-int speed_base =1600;                 //left61right60//left102right100;
+int slow_flag = 12;
+int speed_base =2200;                 //left61right60//left102right100;
 int start_flag = 0;
 int cross_more_flag = 0;
 
@@ -634,15 +638,20 @@ void UNIT_SET(){
 //    unit_param_set(&weight11,TYPE_INT,1    ,2  ,0,NORMAL_PAR,"weight11");
 	  unit_param_set(&p_kp,TYPE_INT,1	   ,3  ,2,NORMAL_PAR,"p_kp");
     unit_param_set(&p_ki,TYPE_INT,1    ,3  ,2,NORMAL_PAR,"p_ki");	
-	  unit_param_set(&p_kd_d,TYPE_INT,1    ,3  ,2,NORMAL_PAR,"p_kd_d");	
-    unit_param_set(&p_kd_a,TYPE_FLOAT,0.1    ,3  ,3,NORMAL_PAR,"p_kd_a");
+	  unit_param_set(&p_kd_d,TYPE_FLOAT,0.01    ,3  ,3,NORMAL_PAR,"p_kd_d");	
+    unit_param_set(&p_kd_a,TYPE_FLOAT,0.01    ,3  ,3,NORMAL_PAR,"p_kd_a");
 	
+	  unit_param_set(&p_kp_s,TYPE_INT,1	   ,3  ,2,NORMAL_PAR,"p_kps");
+    unit_param_set(&p_ki_s,TYPE_INT,1    ,3  ,2,NORMAL_PAR,"p_kis");	
+	  unit_param_set(&p_kd_d_s,TYPE_FLOAT,0.01    ,3  ,3,NORMAL_PAR,"p_kd_ds");	
+    unit_param_set(&p_kd_a_s,TYPE_FLOAT,0.01    ,3  ,3,NORMAL_PAR,"p_kd_as");
+		
 	  unit_param_set(&s_kp,TYPE_FLOAT,0.01	   ,2  ,3,NORMAL_PAR,"s_kp");
     unit_param_set(&s_ki,TYPE_FLOAT,0.01    ,2  ,3,NORMAL_PAR,"s_ki");	
     unit_param_set(&s_kd,TYPE_FLOAT,0.01    ,2  ,3,NORMAL_PAR,"s_kd");
-    unit_param_set(&slow_flag,TYPE_INT,1    ,2  ,1,NORMAL_PAR,"slow_flag");		
+    unit_param_set(&slow_flag,TYPE_INT,1    ,3  ,1,NORMAL_PAR,"slow_flag");		
 		
-    unit_param_set(&speed_base,TYPE_INT,100    ,4  ,0,NORMAL_PAR,"spe");
+    unit_param_set(&speed_base,TYPE_INT,2200    ,5  ,0,NORMAL_PAR,"spe");
 		unit_param_set(&cross_more_flag,TYPE_INT,1    ,2  ,1,NORMAL_PAR,"cross");
     unit_param_set(&circle_flag,TYPE_INT,1    ,2  ,1,NORMAL_PAR,"-1le1ri");	
 		unit_param_set(&start_flag,TYPE_INT,1    ,2  ,1,NORMAL_PAR,"start_flag");

@@ -4,6 +4,7 @@
 #include "zf_device_ips200.h"
 #include "Find_Way.h"
 #include "my_func.h"
+#include "auto_menu.h"
 
 uint8_t center_line[SEARCH_IMAGE_H]={0};
 uint8_t center_line_mode = 0;            //1ÎªÑ°ÓÒ±ßÏß,2ÎªÑ°×ó±ßÏß
@@ -46,36 +47,56 @@ void Update_Line(const uint8_t *image)
 	Get_Reference_Point(image);
 	Search_Reference_Col(image);
 	Search_Line(image);
+	if(!cross_flag)circle_state();
+	if(cross_more_flag)
+	{
+//		if(!circle_flag)cross_analysis();
+	}
 	if(island_temp_flag == 2 || island_temp_flag == 4)
 	{
 		Connect_Circle_In();
 	}
-	if(center_line_mode == 1)
+	if(center_line_mode == 1 && circle_flag == 1)       //Ñ°ÓÒ±ßÏß ÓÒÔ²»·
 	{
 		for(int i = 0;i < SEARCH_IMAGE_H;i++)
 		{
 			center_line[i]=right_edge_line[i] - half_line[i];
 		}
 	}
-	if(center_line_mode == 2)
+	else if(center_line_mode == 1 && circle_flag == 2)       //Ñ°ÓÒ±ßÏß ×óÔ²»·
+	{
+		for(int i = 0;i < SEARCH_IMAGE_H;i++)
+		{
+			center_line[i]=right_edge_line[i] - big_half_line[i];
+		}
+	}
+	else if(center_line_mode == 2 && circle_flag == 1)         //Ñ°×ó±ßÏß ÓÒÔ²»·
 	{
 		for(int i = 0;i < SEARCH_IMAGE_H;i++)
 		{
 			center_line[i]=left_edge_line[i] + big_half_line[i];
 		}		
 	}
-	if(center_line_mode == 0)
+	else if(center_line_mode == 2 && circle_flag == 2)         //Ñ°×ó±ßÏß ×óÔ²»·
+	{
+		for(int i = 0;i < SEARCH_IMAGE_H;i++)
+		{
+			center_line[i]=left_edge_line[i] + half_line[i];
+		}		
+	}
+	else if(center_line_mode == 0)                           //Ñ°ÖÐÏß
 	{
 		for(int i = 0;i < SEARCH_IMAGE_H;i++)
 		{
 			center_line[i]=(left_edge_line[i] + right_edge_line[i])/2;
 		}
 	}
-	for(int i = 0; i < SEARCH_IMAGE_H;i++)
-	{
-		if(center_line[i] > 188)center_line[i] = 188;
-		if(center_line[i] < 0) center_line[i] = 0;
-	}
+		for(int i = 0; i < SEARCH_IMAGE_H;i++)
+		{
+			if(center_line[i] > 188)center_line[i] = 188;
+			if(center_line[i] < 0) center_line[i] = 0;
+		}
+		banmaxian_stop(image);
 	image_calculate_prospect(image);
 	Find_Edge_At_Reference_Col(image);
 	get_center_weight();

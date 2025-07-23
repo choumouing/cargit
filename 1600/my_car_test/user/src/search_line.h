@@ -8,7 +8,7 @@
 
 #define REFERENCE_ROW       5          //参考点统计行数
 #define REFERENCE_COL       80         //参考点统计列数
-#define SEARCHRANGE     10         //搜线半径
+#define SEARCHRANGE     0         //搜线半径
 #define STOPROW         0        //搜线停止行
 #define CONTRASTOFFSET    3     //搜线对比偏移
 

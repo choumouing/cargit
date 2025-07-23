@@ -16,8 +16,8 @@ void Motor_Init(void)       //DIR,PWM口初始化
 
 void Motor_Left_SetSpeed(int16_t duty)
 {	
-	if(duty > 6000)duty = 6000;
-	if(duty < -6000)duty = -6000;        //
+	if(duty > 9000)duty = 9000;
+	if(duty < -9000)duty = -9000;        //
 	
 	if (duty >= 0)							//如果设置正转的速度值
 	{
@@ -33,8 +33,8 @@ void Motor_Left_SetSpeed(int16_t duty)
 }
 void Motor_Right_SetSpeed(int16_t duty)
 {
-	if(duty > 6000)duty = 6000;
-	if(duty < -6000)duty = -6000;
+	if(duty > 9000)duty = 9000;
+	if(duty < -9000)duty = -9000;
 	if (duty >= 0)							//如果设置正转的速度值
 	{
 		gpio_set_level(DIR_R, GPIO_LOW);

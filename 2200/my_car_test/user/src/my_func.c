@@ -50,7 +50,7 @@ void Update_Line(const uint8_t *image)
 	if(!cross_flag)circle_state();
 	if(cross_more_flag)
 	{
-		if(!circle_flag)cross_analysis();
+//		if(!circle_flag)cross_analysis();
 	}
 	if(island_temp_flag == 2 || island_temp_flag == 4)
 	{
@@ -96,6 +96,7 @@ void Update_Line(const uint8_t *image)
 			if(center_line[i] > 188)center_line[i] = 188;
 			if(center_line[i] < 0) center_line[i] = 0;
 		}
+		banmaxian_stop(image);
 	image_calculate_prospect(image);
 	Find_Edge_At_Reference_Col(image);
 	get_center_weight();

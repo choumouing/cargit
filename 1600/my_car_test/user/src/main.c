@@ -67,8 +67,10 @@ int16_t speed_left_final = 0,speed_right_final = 0;
 int16_t difference=0;
 char Image_Ready=0;
 char prospect_flag = 0;
-int slow = 0;
+char straight = 0;
+float slow = 0;
 
+PositionalPID position_s_pid = {0};
 PositionalPID position_pid = {0};
 IncrementalPID speed_pid = {0};
 
@@ -95,6 +97,7 @@ int main (void)
 				show_process(NULL);			
 				IncrementalPID_Init(&speed_pid,s_kp,s_ki,s_kd);	
 				PositionalPID_Init(&position_pid, p_kp,p_ki,p_kd_d,p_kd_a);// 位置PID参数           1.6 0 0.8               2.6 0 2.8(67 60) 
+				PositionalPID_Init(&position_s_pid, p_kp_s,p_ki_s,p_kd_d_s,p_kd_a_s); 
 				ips_show_mt9v03x(*image_buffer);   	
 		if(start_flag)
 		{	
@@ -104,6 +107,7 @@ int main (void)
 						speed_left_final = 0;
 						speed_right_final = 0;
 						start_flag = 0;
+						island_temp_flag = 0;
 					}
 
 //					ips200_show_int(0,170,center_line_weight_temp, 3);	
@@ -113,9 +117,6 @@ int main (void)
 //					ips200_show_int(0,260,reference_col_line[2], 3);	
 //					ips200_show_int(30,260,left_nomal_flag, 3);	
 //					ips200_show_int(60,260,right_nomal_flag, 3);	
-		
-//					ips200_show_int(0,200,left_variance, 3);	
-//					ips200_show_int(0,230,right_variance, 3);	
 
 //      	  printf("center_line_weight_temp \t\t%d .\r\n", center_line_weight_temp); 
 //			 	  printf("target_speed_diff \t\t%f .\r\n", target_speed_diff); 
@@ -123,38 +124,49 @@ int main (void)
 //					printf("speed_right \t\t%d .\r\n", encoder_data_right);
 //					printf("%d,%d\n", encoder_data_left,encoder_data_right); 							
 //				  printf("prospect \t\t%d .\r\n", prospect);
-							
-				slow = slow_flag * ( myabs(center_line_weight_final - 94) * myabs(center_line_weight_final - 94) / 3 + top * top / 3);
-				
+				if(prospect > 105)straight = 1;
+				else straight = 0;
+				slow = slow_flag * ((120 - prospect) * (120 - prospect) * (120 - prospect)/ 5000);//myabs(center_line_weight_final - 94) * myabs(center_line_weight_final - 94) / 5 
+				if(!straight)
+				{
 				speed_diff = PositionalPID_Update(&position_pid,center_line_weight_final, 94);                    //位置PID的结果与速度差的关系
-				
-				if(speed_diff > 5000)speed_diff = 5000;
-				if(speed_diff < -5000)speed_diff = -5000;			
+				}
+				else
+				{
+				speed_diff = PositionalPID_Update(&position_s_pid,center_line_weight_final, 94);                    //位置PID的结果与速度差的关系
+				}
+				if(speed_diff > 6000)speed_diff = 6000;
+				if(speed_diff < -6000)speed_diff = -6000;			
 				speed_left_base = speed_base;
 				speed_right_base = speed_base;
 				if(speed_diff > 0)
 				{
-				speed_left_final = speed_left_base + 0.8 * speed_diff - slow;
-				speed_right_final = speed_right_base - 1.2 * speed_diff - slow;
+				speed_left_final = speed_left_base + 0.5 * speed_diff - slow;
+				speed_right_final = speed_right_base - 1.5 * speed_diff - slow;
 				}
 				else
 				{
-				speed_left_final = speed_left_base + 1.2 * speed_diff - slow;
-				speed_right_final = speed_right_base - 0.8 * speed_diff - slow;					
+				speed_left_final = speed_left_base + 1.5 * speed_diff - slow;
+				speed_right_final = speed_right_base - 0.5 * speed_diff - slow;					
 				}
 		    Motor_Left_SetSpeed((int16_t)speed_left_final);			
 		    Motor_Right_SetSpeed((int16_t)speed_right_final);
 			
-			}
+		}
 			else
 			{
 				Motor_Left_SetSpeed(0);			
 		    Motor_Right_SetSpeed(0);
+				island_temp_flag = 0;
 			}
 			
 				ips200_show_int(0,200,island_temp_flag, 2);					
 				ips200_show_int(0,230,center_line_weight_final, 3);	
-				ips200_show_int(0,290,encoder_temp_left, 5);	
+				ips200_show_int(0,260,prospect, 5);		
+				ips200_show_int(0,290,banmaxian_flag, 3);	
+//				ips200_show_int(0,290,encoder_temp_left, 5);	
+//				ips200_show_int(100,290,encoder_temp_right, 5);
+	
 			  system_delay_ms(20);
     }
 		
