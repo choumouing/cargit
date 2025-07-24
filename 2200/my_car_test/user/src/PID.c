@@ -14,6 +14,7 @@ void PositionalPID_Init(PositionalPID* pid, float Kp, float Ki, float Kd_d,float
 		pid->Kd_a = Kd_a;
     pid->integral = 0.0f;
     pid->prev_err = 0.0f;
+		pid->prev_d = 0.0f;
 }
 
 // 增量式PID初始化
@@ -27,31 +28,36 @@ void IncrementalPID_Init(IncrementalPID* pid, float Kp, float Ki, float Kd) {
 }
 
 float PositionalPID_Update(PositionalPID* pid, float target, float current) 
-{
-		mpu6050_get_gyro();  // 更新数据
-		mpu6050_gyro_z = mpu6050_gyro_z + 117;
-		if(myabs(mpu6050_gyro_z) <= 5)mpu6050_gyro_z = 0;
-	
-    // 计算误差
-    float err = target - current;
-    
-    // 积分项更新 (防饱和处理通常加在这里)
-    pid->integral += err;
-    
-    // 微分项 (当前误差-上次误差)
-    float derivative = err - pid->prev_err;
-
-    // PID输出计算
-    float output = pid->Kp * err 
-                + pid->Ki * pid->integral 
-                + (1 - 0.7) * ( pid->Kd_a * (- mpu6050_gyro_z) / 100 + pid->Kd_d * derivative ) + 0.7 * prev_d;
-    
-    // 更新历史误差
-    pid->prev_err = err;
-    prev_d = (1 - 0.7) * ( pid->Kd_a * (- mpu6050_gyro_z) / 1000 + pid->Kd_d * derivative ) + 0.7 * prev_d;
+	{
+			mpu6050_get_gyro();  // 更新数据
+			mpu6050_gyro_z = mpu6050_gyro_z + 117;
+			if(myabs(mpu6050_gyro_z) <= 5)mpu6050_gyro_z = 0;
 		
-    return output;
-}
+			// 计算误差
+			float err = target - current;
+			
+			// 积分项更新 (防饱和处理通常加在这里)
+			pid->integral += err;
+			
+			if(pid->integral > 3000)pid->integral = 3000;
+			else if(pid->integral < -3000)pid->integral = -3000;
+		
+			// 微分项 (当前误差-上次误差)
+			float derivative = err - pid->prev_err;
+
+			// PID输出计算
+			float output = pid->Kp * err 
+									+ pid->Ki * pid->integral 
+									+ (1 - 0.7) * ( pid->Kd_a * (- mpu6050_gyro_z) / 1000 + pid->Kd_d * derivative ) + 0.7 * pid->prev_d;
+			
+			// 更新历史误差
+			pid->prev_err = err;
+			pid->prev_d = (1 - 0.7) * ( pid->Kd_a * (- mpu6050_gyro_z) / 1000 + pid->Kd_d * derivative ) + 0.7 * pid->prev_d;
+							
+			if(output > 6000)output = 6000;
+			if(output < -6000)output = -6000;			
+			return output;
+	}
 
 
 

@@ -8,6 +8,7 @@ typedef struct
     float Kp, Ki, Kd_d,Kd_a;
     float integral;  // 积分累计
     float prev_err;  // 上次误差
+		float prev_d;
 } PositionalPID;
 
 // 增量式PID结构体

@@ -21,6 +21,7 @@ int encoder_temp_left = 0;
 int encoder_temp_right = 0;
 uint8 cross_flag = 0;                    //十字标志位
 uint8 banmaxian_flag = 0;
+uint8 obstacle_flag = 0;
 
 uint8_t big_half_line[SEARCH_IMAGE_H]={           
 21,21,22,23,23,24,25,25,26,27,
@@ -534,7 +535,6 @@ void Connect_Cross_In(uint8_t *arrary_value1,uint8_t *arrary_value2)
 }
 
 
-
 void Connect_Circle_In()
 {
 	if(circle_flag == 1)
@@ -571,4 +571,57 @@ void banmaxian_stop(const uint8_t *image)
 		}
 	}
 	if(count > 20)banmaxian_flag ++;
+}
+void Find_obstacle()
+{
+		for(int i = SEARCH_IMAGE_H-40;i>20;i--)
+	  {
+			if((right_edge_line[i + 1]-right_edge_line[i] > 5) || right_edge_line[i + 1] < right_edge_line[i])
+			{			
+				obstacle_flag = 10;
+				return;
+			}
+		}
+		for(int i = SEARCH_IMAGE_H-40;i>30;i--)
+		{
+			if(right_edge_line[i] > 183)
+			{
+				obstacle_flag = 20;
+				return;
+			}
+		}	
+//		uint16 temp = 0;
+//		for(int i = 0; i < SEARCH_IMAGE_H;i++)
+//		{
+//			temp += center_line[i];
+//		}
+//		temp = temp / 120;
+		uint16_t up_point = 0,down_point = 0;
+		for(int i = 15; i < SEARCH_IMAGE_H - 30;i++)
+		{
+				if(
+					left_edge_line[i - 3] < left_edge_line[i] &&
+					left_edge_line[i - 5] < left_edge_line[i] )
+				{
+				up_point = i;
+					break;
+				}
+		}
+		for(int i = up_point + 5; i < SEARCH_IMAGE_H - 30;i++)
+		{
+			if(
+					(left_edge_line[i] -  left_edge_line[i + 3] > 5) &&
+					(left_edge_line[i] - left_edge_line[i + 5] > 5) )
+			{
+				down_point = i;
+				break;
+			}
+		}
+		if(up_point == 0 && down_point != 0)obstacle_flag = 30;
+		if(up_point !=0 && down_point == 0)obstacle_flag = 40;
+		if(up_point && down_point && (down_point - up_point < 20) )
+		{
+			obstacle_flag = 1;
+		}
+//		else obstacle_flag = 0;
 }

@@ -47,11 +47,13 @@ void Update_Line(const uint8_t *image)
 	Get_Reference_Point(image);
 	Search_Reference_Col(image);
 	Search_Line(image);
-	if(!cross_flag)circle_state();
+	if(cross_flag == 0 && obstacle_flag == 0)circle_state();
 	if(cross_more_flag)
 	{
-//		if(!circle_flag)cross_analysis();
+//		if(circle_flag == 0 && obstacle_flag == 0)cross_analysis();
 	}
+	Find_obstacle();
+	
 	if(island_temp_flag == 2 || island_temp_flag == 4)
 	{
 		Connect_Circle_In();
@@ -89,6 +91,13 @@ void Update_Line(const uint8_t *image)
 		for(int i = 0;i < SEARCH_IMAGE_H;i++)
 		{
 			center_line[i]=(left_edge_line[i] + right_edge_line[i])/2;
+		}
+	}
+	if(obstacle_flag)
+	{
+		for(int i = 0; i < SEARCH_IMAGE_H;i++)
+		{
+			center_line[i] = center_line[i] + 10;
 		}
 	}
 		for(int i = 0; i < SEARCH_IMAGE_H;i++)
