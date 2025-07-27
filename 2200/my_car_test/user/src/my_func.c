@@ -5,6 +5,7 @@
 #include "Find_Way.h"
 #include "my_func.h"
 #include "auto_menu.h"
+#include "globals.h"
 
 uint8_t center_line[SEARCH_IMAGE_H]={0};
 uint8_t center_line_mode = 0;            //1为寻右边线,2为寻左边线
@@ -47,10 +48,11 @@ void Update_Line(const uint8_t *image)
 	Get_Reference_Point(image);
 	Search_Reference_Col(image);
 	Search_Line(image);
+	straight_up();
 	if(cross_flag == 0 && obstacle_flag == 0)circle_state();
 	if(cross_more_flag)
 	{
-//		if(circle_flag == 0 && obstacle_flag == 0)cross_analysis();
+		if(circle_flag == 0 && obstacle_flag == 0)cross_analysis();
 	}
 	Find_obstacle();
 	
@@ -93,11 +95,11 @@ void Update_Line(const uint8_t *image)
 			center_line[i]=(left_edge_line[i] + right_edge_line[i])/2;
 		}
 	}
-	if(obstacle_flag)
+	if(obstacle_flag == 1)
 	{
 		for(int i = 0; i < SEARCH_IMAGE_H;i++)
 		{
-			center_line[i] = center_line[i] + 10;
+			center_line[i] = center_line[i] + 20;
 		}
 	}
 		for(int i = 0; i < SEARCH_IMAGE_H;i++)
@@ -105,7 +107,14 @@ void Update_Line(const uint8_t *image)
 			if(center_line[i] > 188)center_line[i] = 188;
 			if(center_line[i] < 0) center_line[i] = 0;
 		}
-		banmaxian_stop(image);
+	if(start_flag == 1 && start_count < 5)
+	{
+		for(int i = 0; i < SEARCH_IMAGE_H;i++)
+		{
+			center_line[i] = 94;
+		}
+	}
+	banmaxian_stop(image);
 	image_calculate_prospect(image);
 	Find_Edge_At_Reference_Col(image);
 	get_center_weight();

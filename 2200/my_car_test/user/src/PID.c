@@ -6,6 +6,8 @@
 #include "zf_device_mpu6050.h"
 
 float gyro_z = 0,prev_d = 0;
+
+
 // 位置式PID初始化
 void PositionalPID_Init(PositionalPID* pid, float Kp, float Ki, float Kd_d,float Kd_a) {
     pid->Kp = Kp;
@@ -26,6 +28,7 @@ void IncrementalPID_Init(IncrementalPID* pid, float Kp, float Ki, float Kd) {
         pid->err[i] = 0.0f;
     }
 }
+
 
 float PositionalPID_Update(PositionalPID* pid, float target, float current) 
 	{
@@ -48,14 +51,14 @@ float PositionalPID_Update(PositionalPID* pid, float target, float current)
 			// PID输出计算
 			float output = pid->Kp * err 
 									+ pid->Ki * pid->integral 
-									+ (1 - 0.7) * ( pid->Kd_a * (- mpu6050_gyro_z) / 1000 + pid->Kd_d * derivative ) + 0.7 * pid->prev_d;
+									+ (1 - 0.3) * ( pid->Kd_a * (- mpu6050_gyro_z) / 1000 + pid->Kd_d * derivative ) + 0.3 * pid->prev_d;
 			
 			// 更新历史误差
 			pid->prev_err = err;
-			pid->prev_d = (1 - 0.7) * ( pid->Kd_a * (- mpu6050_gyro_z) / 1000 + pid->Kd_d * derivative ) + 0.7 * pid->prev_d;
+			pid->prev_d = (1 - 0.3) * ( pid->Kd_a * (- mpu6050_gyro_z) / 1000 + pid->Kd_d * derivative ) + 0.3 * pid->prev_d;
 							
-			if(output > 6000)output = 6000;
-			if(output < -6000)output = -6000;			
+			if(output > 8000)output = 8000;
+			if(output < -8000)output = -8000;			
 			return output;
 	}
 
@@ -77,4 +80,23 @@ float IncrementalPID_Update(IncrementalPID* pid, float target, float current)
     return delta;  // 返回控制增量
 }
 
-	
+float pid_increment(PID_INCREMENT_TypeDef *pid, float target, float current,float limit, float kp, float ki, float kd) 
+{
+    float error = target - current;
+    
+    float p_term = kp * (error - pid->last_error);
+    float i_term = ki * error *0.9 + pid->last_i *0.1;       
+    float d_term = kd * (error - 2*pid->last_error + pid->prev_error);
+    float increment = p_term + i_term + d_term;
+    pid->output += increment;
+	pid->last_i = i_term;
+    // 更新误差历史
+    pid->prev_error = pid->last_error;
+    pid->last_error = error;
+
+    // 输出限幅
+    if(pid->output > limit) pid->output = limit;
+    else if(pid->output < -limit) pid->output = -limit;
+    
+    return pid->output;
+}

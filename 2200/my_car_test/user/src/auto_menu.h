@@ -136,14 +136,14 @@ void Flash_Read();
 void Flash_Write();
 void Flash_Erase();
 
-extern int p_kp,p_ki;
-extern float p_kd_a,p_kd_d;
-extern int p_kp_s,p_ki_s;
-extern float p_kd_a_s,p_kd_d_s;
+extern float p_kp,p_ki,p_kd_a,p_kd_d;
+extern float p_kp_s,p_ki_s,p_kd_a_s,p_kd_d_s;
 extern float s_kp,s_ki,s_kd;
 extern int speed_base; 
 extern int start_flag;
 extern int slow_flag;
 extern int cross_more_flag;
+extern float chasu;
+extern float speed_beilv;
 #endif
 

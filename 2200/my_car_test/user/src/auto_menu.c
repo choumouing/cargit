@@ -610,17 +610,16 @@ void NULL_FUN(){
 
 }
 
-int p_kp=92,p_ki=0;
-float p_kd_a = 0.00,p_kd_d =0.19;
+float p_kp=0.5,p_ki=0,p_kd_a = 0.00,p_kd_d =0.00;
+float p_kp_s=0.5,p_ki_s=0,p_kd_a_s= 0.00,p_kd_d_s =0.00;
 
-int p_kp_s=75,p_ki_s=0;
-float p_kd_a_s= 0.00,p_kd_d_s =0.17;
-
-float s_kp=7,s_ki=0.00,s_kd=-1;
+float s_kp=8,s_ki=2,s_kd=4;
 int slow_flag = 0;
 int speed_base =0;                 //left61right60//left102right100;
 int start_flag = 0;
 int cross_more_flag = 0;
+float chasu = 1;        //差速加减倍率 0 - 1
+float speed_beilv = 1;
 
 void UNIT_SET(){
 	//菜单单元调参参数初始化
@@ -636,13 +635,13 @@ void UNIT_SET(){
 //    unit_param_set(&weight9, TYPE_INT,1    ,2  ,0,NORMAL_PAR,"weight9");
 //    unit_param_set(&weight10,TYPE_INT,1	   ,2  ,0,NORMAL_PAR,"weight10");
 //    unit_param_set(&weight11,TYPE_INT,1    ,2  ,0,NORMAL_PAR,"weight11");
-	  unit_param_set(&p_kp,TYPE_INT,1	   ,3  ,2,NORMAL_PAR,"p_kp");
-    unit_param_set(&p_ki,TYPE_INT,1    ,3  ,2,NORMAL_PAR,"p_ki");	
+	  unit_param_set(&p_kp,TYPE_FLOAT,0.1	   ,3  ,2,NORMAL_PAR,"p_kp");
+    unit_param_set(&p_ki,TYPE_FLOAT,0.1    ,3  ,2,NORMAL_PAR,"p_ki");	
 	  unit_param_set(&p_kd_d,TYPE_FLOAT,0.001    ,3  ,4,NORMAL_PAR,"p_kd_d");	
     unit_param_set(&p_kd_a,TYPE_FLOAT,0.01    ,3  ,3,NORMAL_PAR,"p_kd_a");
 	
-	  unit_param_set(&p_kp_s,TYPE_INT,1	   ,3  ,2,NORMAL_PAR,"p_kps");
-    unit_param_set(&p_ki_s,TYPE_INT,1    ,3  ,2,NORMAL_PAR,"p_kis");	
+	  unit_param_set(&p_kp_s,TYPE_FLOAT,0.1	   ,3  ,2,NORMAL_PAR,"p_kps");
+    unit_param_set(&p_ki_s,TYPE_FLOAT,0.1    ,3  ,2,NORMAL_PAR,"p_kis");	
 	  unit_param_set(&p_kd_d_s,TYPE_FLOAT,0.001    ,3  ,4,NORMAL_PAR,"p_kd_ds");	
     unit_param_set(&p_kd_a_s,TYPE_FLOAT,0.01    ,3  ,3,NORMAL_PAR,"p_kd_as");
 		
@@ -651,10 +650,13 @@ void UNIT_SET(){
     unit_param_set(&s_kd,TYPE_FLOAT,1    ,2  ,3,NORMAL_PAR,"s_kd");
     unit_param_set(&slow_flag,TYPE_INT,1    ,3  ,1,NORMAL_PAR,"slow_flag");		
 		
-    unit_param_set(&speed_base,TYPE_INT,100    ,5  ,0,NORMAL_PAR,"spe");
+    unit_param_set(&speed_base,TYPE_INT,10    ,5  ,0,NORMAL_PAR,"spe");
 		unit_param_set(&cross_more_flag,TYPE_INT,1    ,2  ,1,NORMAL_PAR,"cross");
     unit_param_set(&circle_flag,TYPE_INT,1    ,2  ,1,NORMAL_PAR,"-1le1ri");	
 		unit_param_set(&start_flag,TYPE_INT,1    ,2  ,1,NORMAL_PAR,"start_flag");
+		
+		unit_param_set(&chasu,TYPE_FLOAT,0.1    ,2  ,2,NORMAL_PAR,"chasu");		
+		unit_param_set(&speed_beilv,TYPE_FLOAT,0.1    ,2  ,2,NORMAL_PAR,"s_beilv");	
 //    unit_param_set(&speed_left_base, TYPE_INT,10	    ,4  ,0,NORMAL_PAR,"spe_l_m");
 //    unit_param_set(&speed_right_base,TYPE_INT,10     ,4  ,0,NORMAL_PAR,"spe_r_m");	
 	
