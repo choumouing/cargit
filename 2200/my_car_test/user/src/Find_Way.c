@@ -17,12 +17,11 @@ int16_t island_temp_flag = 0;
 uint16 circle_time = 0;
 float circle_gyro_z = 0;
 float angle_temp = 0;
-int encoder_temp_left = 0;
-int encoder_temp_right = 0;
 uint8 cross_flag = 0;                    //十字标志位
 uint8 banmaxian_flag = 0;
 uint8 obstacle_flag = 0;
 uint8 speed_up = 0;
+int encoder_temp_left = 0,encoder_temp_right = 0;
 
 uint8_t big_half_line[SEARCH_IMAGE_H]={           
 21,21,22,23,23,24,25,25,26,27,

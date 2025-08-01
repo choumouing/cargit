@@ -102,18 +102,20 @@ void Update_Line(const uint8_t *image)
 			center_line[i] = center_line[i] + 20;
 		}
 	}
-		for(int i = 0; i < SEARCH_IMAGE_H;i++)
+	
+		for(int i = 0; i < SEARCH_IMAGE_H;i++)     //·ÀÖ¹Ô½½ç
 		{
 			if(center_line[i] > 188)center_line[i] = 188;
 			if(center_line[i] < 0) center_line[i] = 0;
 		}
-	if(start_flag == 1 && start_count < 5)
-	{
-		for(int i = 0; i < SEARCH_IMAGE_H;i++)
-		{
-			center_line[i] = 94;
-		}
-	}
+		
+//	if(start_flag == 1 && start_count < 50)
+//	{
+//		for(int i = 0; i < SEARCH_IMAGE_H;i++)
+//		{
+//			center_line[i] = 94;
+//		}
+//	}
 	banmaxian_stop(image);
 	image_calculate_prospect(image);
 	Find_Edge_At_Reference_Col(image);
@@ -156,14 +158,14 @@ void ips_show_mt9v03x(uint8_t *image_buffer)
 					Update_Line(image_buffer);
 
 					
-//					ips200_show_gray_image(0, 0, (const uint8 *)image_buffer, MT9V03X_W, MT9V03X_H, 188, 120, 0);
-//					for(uint16_t i=1;i<SEARCH_IMAGE_H;i++)
-//						{
-//							ips200_draw_point(left_edge_line[i],i,RGB565_RED);
-//							ips200_draw_point(right_edge_line[i],i,RGB565_BLUE);
-//							ips200_draw_point(center_line[i],i,RGB565_GREEN);
-//							ips200_draw_point(reference_col,i,RGB565_BROWN);							
-//						}
+//				ips200_show_gray_image(0, 0, (const uint8 *)image_buffer, MT9V03X_W, MT9V03X_H, 188, 120, 0);
+//				for(uint16_t i=1;i<SEARCH_IMAGE_H;i++)
+//					{
+//						ips200_draw_point(left_edge_line[i],i,RGB565_RED);
+//						ips200_draw_point(right_edge_line[i],i,RGB565_BLUE);
+//						ips200_draw_point(center_line[i],i,RGB565_GREEN);
+//						ips200_draw_point(reference_col,i,RGB565_BROWN);							
+//					}
 					Image_Ready=0;
 				}
 }

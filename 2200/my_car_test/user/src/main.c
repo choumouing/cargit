@@ -63,15 +63,23 @@ int16 encoder_data_right;
 uint8 image_buffer[MT9V03X_H][MT9V03X_W]={0};
 
 
-int16_t start_count=0;
+
+
+
 char Image_Ready=0;
+char prospect_flag = 0;
+char straight = 0;
 float slow = 0;
 
-PositionalPID position_s_pid = {0};
+//PositionalPID position_s_pid = {0};
 PositionalPID position_pid = {0};
-PositionalPID speed_pid_l = {0};
-PositionalPID speed_pid_r = {0};
-	
+//PositionalPID speed_pid_l = {0};
+//PositionalPID speed_pid_r = {0};
+
+PID_INCREMENT_TypeDef speed_pid_l = {0};
+PID_INCREMENT_TypeDef speed_pid_r = {0};
+PID_INCREMENT_TypeDef speed_pid_all = {0};
+
 int main (void)
 {
     clock_init(SYSTEM_CLOCK_120M);                                              // 初始化芯片时钟 工作频率为 120MHz
@@ -84,105 +92,58 @@ int main (void)
 		if_mt9v03x_init();
 
 		Encoder_Init();
-		pit_ms_init(PIT, 10);                                                      // 初始化 PIT 为周期中断 20ms 周期
+		pit_ms_init(PIT,10);                                                      // 初始化 PIT 为周期中断 20ms 周期
 		interrupt_set_priority(PIT_PRIORITY, 0);         	                           // 设置 PIT 对周期中断的中断优先级为 0
-		pit_ms_init(PIT7, 100);                                                      // 初始化 PIT 为周期中断 100ms 周期
+		pit_ms_init(PIT7, 10);                                                      // 初始化 PIT 为周期中断 100ms 周期
     interrupt_set_priority(PIT7_PRIORITY, 0); 		
+	
+	
+	
+	
     while(1)
     {
 
 				show_process(NULL);		
-				PositionalPID_Init(&speed_pid_l, s_kp,s_ki,s_kd,0);
-				PositionalPID_Init(&speed_pid_r, s_kp,s_ki,s_kd,0);
+//				PositionalPID_Init(&speed_pid_l, s_kp,s_ki,s_kd,0);
+//				PositionalPID_Init(&speed_pid_r, s_kp,s_ki,s_kd,0);
 				PositionalPID_Init(&position_pid, p_kp,p_ki,p_kd_d,p_kd_a);// 位置PID参数           1.6 0 0.8               2.6 0 2.8(67 60) 
-				PositionalPID_Init(&position_s_pid, p_kp_s,p_ki_s,p_kd_d_s,p_kd_a_s); 
-				ips_show_mt9v03x(*image_buffer);   	
+//				PositionalPID_Init(&position_s_pid, p_kp_s,p_ki_s,p_kd_d_s,p_kd_a_s); 
+				ips_show_mt9v03x(*image_buffer);   
+			
 		if(start_flag == 1)
 		{	
 				slow = slow_flag * ((120 - prospect) * (120 - prospect) * (120 - prospect)/ 5000);//myabs(center_line_weight_final - 94) * myabs(center_line_weight_final - 94) / 5 
-				if(prospect < 114)
-				{
-					speed_diff = PositionalPID_Update(&position_pid,center_line_weight_final, 94);                    //位置PID的结果与速度差的关系
-				}
-				else
-				{
-					speed_diff = PositionalPID_Update(&position_s_pid,center_line_weight_final, 94);                    //位置PID的结果与速度差的关系
-				}
-				if(speed_diff > 0)
-				{
-					speed_diff_l = chasu * speed_diff;
-					speed_diff_r = (2 - chasu) * speed_diff;
-				}
-				else
-				{
-					speed_diff_l = (2 - chasu) * speed_diff;
-					speed_diff_r = chasu * speed_diff;			
-				}
-				if(speed_up)
-				{
-					speed_left_base = speed_beilv * speed_base;
-					speed_right_base = speed_beilv * speed_base;					
-				}
-				else
-				{
-					speed_left_base = speed_base;
-					speed_right_base = speed_base;
-				}
-				
-
-				if(prospect < 5)             //进保护
-				{
-					if(start_count > 20)
-					{
-						speed_base = 0;
-						speed_left_base = 0;
-						speed_right_base = 0;
-						speed_left_final = 0;
-						speed_right_final = 0;
-						start_flag = 0;
-						island_temp_flag = 0;
-						start_count = 0;
-					}
-				}
-			
+				protect();
 		}
-			else                                 //保护后代码
-			{
-//				speed_left_base = speed_base;             //测试代码,打开的时候注意点,没有保护了！！！
-//				speed_right_base = speed_base;
-				speed_left_base = 0;
-				speed_right_base = 0;
-				speed_left_final = pid_increment(&speed_increment_left,speed_left_base,encoder_data_left,5000,s_kp,s_ki,s_kd);
-				speed_right_final = pid_increment(&speed_increment_right,speed_right_base,encoder_data_right,5000,s_kp,s_ki,s_kd);
-				Motor_Left_SetSpeed((int16_t)speed_left_final);
-				Motor_Right_SetSpeed((int16_t)speed_right_final);
+		else
+		{
+
 				island_temp_flag = 0;
 				start_count = 0;
-			}
+				speed_left_tar = 0;
+				speed_right_tar = 0;
+		}
 			
-			
-				ips200_show_int(0,200,island_temp_flag, 2);					
-				ips200_show_int(0,230,center_line_weight_final, 3);	
-				ips200_show_int(0,260,prospect, 5);		
-				ips200_show_int(0,290,speed_up, 3);	
-//				ips200_show_int(0,290,encoder_temp_left, 5);	
-//				ips200_show_int(100,290,encoder_temp_right, 5);
 //					ips200_show_int(0,170,center_line_weight_temp, 3);	
 //					ips200_show_int(0,170,element_name, 3);	
 //					ips200_show_int(0,200,test_data1, 3);				
 //					ips200_show_int(0,230,test_data2, 3);	
 //					ips200_show_int(0,260,reference_col_line[2], 3);	
-					ips200_show_int(30,260,left_nomal_flag, 3);	
-					ips200_show_int(60,260,right_nomal_flag, 3);	
+//					ips200_show_int(30,260,left_nomal_flag, 3);	
+//					ips200_show_int(60,260,right_nomal_flag, 3);	
 
 //      	  printf("center_line_weight_temp \t\t%d .\r\n", center_line_weight_temp); 
 //			 	  printf("target_speed_diff \t\t%f .\r\n", target_speed_diff); 
 //					printf("speed_left \t\t%d .\r\n", encoder_data_left); 			
 //					printf("speed_right \t\t%d .\r\n", encoder_data_right);
 //					printf("%d,%d\n", encoder_data_left,encoder_data_right); 							
-//				  printf("prospect \t\t%d .\r\n", prospect);
-				printf("%d,%d,%d,%d\n", encoder_data_left,encoder_data_right,speed_left_final,speed_right_final); 	
-			  system_delay_ms( 20);
+//				  printf("prospect \t\t%d .\r\n", prospect);			
+				ips200_show_int(0,200,island_temp_flag, 2);					
+				ips200_show_int(0,230,center_line_weight_final, 3);	
+				ips200_show_int(0,260,prospect, 5);		
+				ips200_show_int(0,290,speed_up, 3);	
+				printf("%d,%d\n",encoder_data_left,encoder_data_right); 	
+			  system_delay_ms(10);
     }
 		
 }
@@ -192,26 +153,59 @@ int main (void)
 void pit_handler (void)
 {
     encoder_data_left = encoder_get_count(ENCODER_QUADDEC_L);                  // 获取编码器计数
-		encoder_data_left = encoder_data_left;
-		encoder_temp_left += encoder_data_left;		
     encoder_clear_count(ENCODER_QUADDEC_L);                                    	// 清空编码器计数
 		encoder_data_right = encoder_get_count(ENCODER_QUADDEC_R);
 		encoder_data_right = - (encoder_data_right);
-		encoder_temp_right += encoder_data_right;
 	  encoder_clear_count(ENCODER_QUADDEC_R); 
-		if(start_flag == 1)
-		{
-				speed_left = speed_left_base + speed_diff_l - slow;
-				speed_right = speed_right_base - speed_diff_r - slow;
-				speed_left_final = PositionalPID_Update(&speed_pid_l,speed_left,encoder_data_left);
-				speed_right_final = PositionalPID_Update(&speed_pid_r,speed_right,encoder_data_right);
-		    Motor_Left_SetSpeed((int16_t)speed_left_final);			
-		    Motor_Right_SetSpeed((int16_t)speed_right_final);	
-		}
-	
 }
 void pit7_handler (void)
 {
+	if(start_flag == 1)
+	{
+		speed_diff = PositionalPID_Update(&position_pid,center_line_weight_final, 94);                    //位置PID的结果与速度差的关系
+		Get_Speed_Diff();
+		Get_Speed_Base();
+		//串级
+//				speed_left_base = PositionalPID_Update(&speed_pid_l,speed_left_base,encoder_data_left);
+//				speed_right_base = PositionalPID_Update(&speed_pid_r,speed_right_base,encoder_data_right);
+//		speed_left_tar = speed_left_base + speed_diff_l - slow;
+//		speed_right_tar = speed_right_base - speed_diff_r - slow;
+//		speed_left_final = pid_increment(&speed_pid_l,speed_left_tar,encoder_data_left,6000,s_kp,s_ki,s_kd);
+//		speed_right_final = pid_increment(&speed_pid_r,speed_right_tar,encoder_data_right,6000,s_kp,s_ki,s_kd);
+//		Motor_Left_SetSpeed((int16_t)speed_left_final);
+//		Motor_Right_SetSpeed((int16_t)speed_right_final);
+		//并级分开
+//		speed_left = pid_increment(&speed_pid_l,speed_left_base,encoder_data_left,6000,s_kp,s_ki,s_kd);
+//		speed_right = pid_increment(&speed_pid_r,speed_right_base,encoder_data_right,6000,s_kp,s_ki,s_kd);
+//		speed_left_final = speed_left + speed_diff_l - slow;
+//		speed_right_final = speed_right - speed_diff_r - slow;
+//		Motor_Left_SetSpeed((int16_t)speed_left_final);
+//		Motor_Right_SetSpeed((int16_t)speed_right_final);
+	//并级速度和
+		speed_left = pid_increment(&speed_pid_all , (speed_left_base + speed_right_base) , (encoder_data_left + encoder_data_right) , 6000 , s_kp , s_ki , s_kd) / 2;
+		speed_right = speed_left;
+//		speed_left_final = speed_left + speed_diff_l - slow;
+//		speed_right_final = speed_right - speed_diff_r - slow;
+		speed_left_final = speed_left + speed_diff;
+		speed_right_final = speed_right - speed_diff;
+		Motor_Left_SetSpeed((int16_t)speed_left_final);
+		Motor_Right_SetSpeed((int16_t)speed_right_final);		
+	}
+	else
+	{
+//				speed_left_base = speed_base;
+//				speed_right_base = speed_base;
+				speed_left_base = 0;
+				speed_right_base = 0;
+				speed_left_tar = speed_left_base;
+				speed_right_tar = speed_right_base;
+			  speed_left_final = pid_increment(&speed_pid_l,speed_left_tar,encoder_data_left,6000,s_kp,s_ki,s_kd);
+				speed_right_final = pid_increment(&speed_pid_r,speed_right_tar,encoder_data_right,6000,s_kp,s_ki,s_kd);
+//				speed_left_base = PositionalPID_Update(&speed_pid_l,speed_left_base,encoder_data_left);
+//				speed_right_base = PositionalPID_Update(&speed_pid_r,speed_right_base,encoder_data_right);
+		    Motor_Left_SetSpeed((int16_t)speed_left_final);			
+		    Motor_Right_SetSpeed((int16_t)speed_right_final);	
+	}
 	if(start_flag == 1)
 	{
 		start_count ++;

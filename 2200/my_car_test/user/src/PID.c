@@ -6,8 +6,6 @@
 #include "zf_device_mpu6050.h"
 
 float gyro_z = 0,prev_d = 0;
-
-
 // 位置式PID初始化
 void PositionalPID_Init(PositionalPID* pid, float Kp, float Ki, float Kd_d,float Kd_a) {
     pid->Kp = Kp;
@@ -28,7 +26,6 @@ void IncrementalPID_Init(IncrementalPID* pid, float Kp, float Ki, float Kd) {
         pid->err[i] = 0.0f;
     }
 }
-
 
 float PositionalPID_Update(PositionalPID* pid, float target, float current) 
 	{
@@ -57,8 +54,8 @@ float PositionalPID_Update(PositionalPID* pid, float target, float current)
 			pid->prev_err = err;
 			pid->prev_d = (1 - 0.3) * ( pid->Kd_a * (- mpu6050_gyro_z) / 1000 + pid->Kd_d * derivative ) + 0.3 * pid->prev_d;
 							
-			if(output > 8000)output = 8000;
-			if(output < -8000)output = -8000;			
+			if(output > 7000)output = 7000;
+			if(output < -7000)output = -7000;			
 			return output;
 	}
 
@@ -100,3 +97,4 @@ float pid_increment(PID_INCREMENT_TypeDef *pid, float target, float current,floa
     
     return pid->output;
 }
+	

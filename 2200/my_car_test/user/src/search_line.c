@@ -36,7 +36,8 @@ uint8_t prospect = 20,top = 0;
 int16_t weight1=0,weight2=0,weight3=0,weight4=0,weight5=0,weight6=0,weight7=0,weight8=0,weight9=0,weight10=0,weight11=0;
 //int16_t center_line_weight[11] = {0,1,1,3,5,9,9,9,5,1,0};
 //int16_t center_line_weight[11] = {0,1,3,5,9,9,9,5,3,1,0};
-int16_t center_line_weight[11] = {1,5,9,9,9,5,3,3,1,1,0};
+//int16_t center_line_weight[11] = {1,5,9,9,9,5,3,3,1,1,0};
+int16_t center_line_weight[11] = {1,5,9,5,1,1,1,1,1,1,0};
 int16_t center_line_weight_buffer[11] = {0};
 int32_t center_line_weight_temp = 0;
 int32_t center_line_weight_count = 0;
@@ -59,8 +60,8 @@ void Get_Reference_Point(const uint8_t *image)
     }
     
     reference_point = templ / area;
-    white_max_point = (uint8_t)func_limit_ab((int32_t)reference_point * WHITEMAXMUL / 10,160,255);
-    white_min_point = (uint8_t)func_limit_ab((int32_t)reference_point * WHITEMINMUL / 10, BLACKPOINT,95);
+    white_max_point = (uint8_t)func_limit_ab((int32_t)reference_point * WHITEMAXMUL / 10,BLACKPOINT,255);
+    white_min_point = (uint8_t)func_limit_ab((int32_t)reference_point * WHITEMINMUL / 10, BLACKPOINT,255);
 }
 
 //void Search_Reference_Col(const uint8_t *image) {

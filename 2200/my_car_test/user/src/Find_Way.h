@@ -1,6 +1,7 @@
 #ifndef __FIND_WAY_H__
 #define __FIND_WAY_H__
 
+#include "search_line.h"
 
 #define LIANXUTHRESHOLD 5
 
@@ -26,11 +27,11 @@ extern uint8_t half_line[SEARCH_IMAGE_H];
 extern uint16 circle_time;
 extern float circle_gyro_z;
 extern float angle_temp;
-extern int encoder_temp_left,encoder_temp_right;
 extern uint8 cross_flag;
 extern uint8 banmaxian_flag;
 extern uint8 obstacle_flag;
 extern uint8 speed_up;
+extern int encoder_temp_left,encoder_temp_right;
 
 uint8_t find_jump_point(uint8_t *arrary_value, uint8_t num0, uint8_t num1, uint8_t jump_num, uint8_t model);
 void connect_point(uint8_t *arrary_value,uint8_t num0,uint8_t num1);
