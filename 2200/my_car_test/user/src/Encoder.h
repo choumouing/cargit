@@ -13,6 +13,8 @@
 #define ENCODER_QUADDEC_R_A               (TIM4_ENCODER_CH1_B6)                   // A 相对应的引脚
 #define ENCODER_QUADDEC_R_B               (TIM4_ENCODER_CH2_B7)                   // B 相对应的引脚
 
+extern int32_t encoder_data_L;
+extern int32_t encoder_data_R;
 
 void Encoder_Init();
 int16_t Get_Encoder_Data_Left();

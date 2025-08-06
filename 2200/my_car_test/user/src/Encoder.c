@@ -3,7 +3,6 @@
  
 int32_t encoder_data_L=0;
 int32_t encoder_data_R=0;
-
  
  void Encoder_Init()
  {

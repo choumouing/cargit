@@ -78,24 +78,24 @@ void Get_Speed_Diff()             //»ñÈ¡×óÓÒÂÖ²îËÙ
 
 void Get_Speed_Base()
 {
-	if(speed_up)
-	{
-		speed_left_base = speed_beilv * speed_base;
-		speed_right_base = speed_beilv * speed_base;					
-	}
-	else
-	{
+//	if(speed_up)
+//	{
+//		speed_left_base = speed_beilv * speed_base;
+//		speed_right_base = speed_beilv * speed_base;					
+//	}
+//	else
+//	{
 		speed_left_base = speed_base;
 		speed_right_base = speed_base;
-	}	
+//	}	
 }
 
 void protect()
 {
 		if(prospect < 5)
 		{
-			if(start_count > 200)
-			{
+//			if(start_count > 200)
+//			{
 					speed_base = 0;
 					speed_left_base = 0;
 					speed_right_base = 0;
@@ -104,6 +104,6 @@ void protect()
 					start_flag = 0;
 					island_temp_flag = 0;
 					start_count = 0;
-			}
+//			}
 		}	
 }

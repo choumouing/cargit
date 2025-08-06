@@ -59,6 +59,8 @@
 
 int16 encoder_data_left;
 int16 encoder_data_right;
+int16 encoder_data_left_prev;
+int16 encoder_data_right_prev;
 
 uint8 image_buffer[MT9V03X_H][MT9V03X_W]={0};
 
@@ -106,7 +108,7 @@ int main (void)
 				show_process(NULL);		
 //				PositionalPID_Init(&speed_pid_l, s_kp,s_ki,s_kd,0);
 //				PositionalPID_Init(&speed_pid_r, s_kp,s_ki,s_kd,0);
-				PositionalPID_Init(&position_pid, p_kp,p_ki,p_kd_d,p_kd_a);// 位置PID参数           1.6 0 0.8               2.6 0 2.8(67 60) 
+				PositionalPID_Init(&position_pid,p_kp_2,p_kp_1,p_kp_0,p_ki,p_kd_d,p_kd_a);// 位置PID参数           1.6 0 0.8               2.6 0 2.8(67 60) 
 //				PositionalPID_Init(&position_s_pid, p_kp_s,p_ki_s,p_kd_d_s,p_kd_a_s); 
 				ips_show_mt9v03x(*image_buffer);   
 			
@@ -153,43 +155,38 @@ int main (void)
 void pit_handler (void)
 {
     encoder_data_left = encoder_get_count(ENCODER_QUADDEC_L);                  // 获取编码器计数
+//		encoder_data_left = (1 - 0.1) * encoder_data_left + 0.1 * encoder_data_left_prev;
+//		encoder_data_left_prev = encoder_data_left;
     encoder_clear_count(ENCODER_QUADDEC_L);                                    	// 清空编码器计数
 		encoder_data_right = encoder_get_count(ENCODER_QUADDEC_R);
 		encoder_data_right = - (encoder_data_right);
+//		encoder_data_right = (1 - 0.1) * encoder_data_right + 0.1 * encoder_data_right_prev;
+//		encoder_data_right_prev = encoder_data_right;
 	  encoder_clear_count(ENCODER_QUADDEC_R); 
 }
 void pit7_handler (void)
 {
+	speed_diff = PositionalPID_Update(&position_pid,center_line_weight_final, 94);                    //位置PID的结果与速度差的关系
+	Get_Speed_Diff();
+	Get_Speed_Base();
 	if(start_flag == 1)
 	{
-		speed_diff = PositionalPID_Update(&position_pid,center_line_weight_final, 94);                    //位置PID的结果与速度差的关系
-		Get_Speed_Diff();
-		Get_Speed_Base();
 		//串级
-//				speed_left_base = PositionalPID_Update(&speed_pid_l,speed_left_base,encoder_data_left);
-//				speed_right_base = PositionalPID_Update(&speed_pid_r,speed_right_base,encoder_data_right);
-//		speed_left_tar = speed_left_base + speed_diff_l - slow;
-//		speed_right_tar = speed_right_base - speed_diff_r - slow;
-//		speed_left_final = pid_increment(&speed_pid_l,speed_left_tar,encoder_data_left,6000,s_kp,s_ki,s_kd);
-//		speed_right_final = pid_increment(&speed_pid_r,speed_right_tar,encoder_data_right,6000,s_kp,s_ki,s_kd);
-//		Motor_Left_SetSpeed((int16_t)speed_left_final);
-//		Motor_Right_SetSpeed((int16_t)speed_right_final);
-		//并级分开
-//		speed_left = pid_increment(&speed_pid_l,speed_left_base,encoder_data_left,6000,s_kp,s_ki,s_kd);
-//		speed_right = pid_increment(&speed_pid_r,speed_right_base,encoder_data_right,6000,s_kp,s_ki,s_kd);
-//		speed_left_final = speed_left + speed_diff_l - slow;
-//		speed_right_final = speed_right - speed_diff_r - slow;
-//		Motor_Left_SetSpeed((int16_t)speed_left_final);
-//		Motor_Right_SetSpeed((int16_t)speed_right_final);
-	//并级速度和
-		speed_left = pid_increment(&speed_pid_all , (speed_left_base + speed_right_base) , (encoder_data_left + encoder_data_right) , 6000 , s_kp , s_ki , s_kd) / 2;
-		speed_right = speed_left;
-//		speed_left_final = speed_left + speed_diff_l - slow;
-//		speed_right_final = speed_right - speed_diff_r - slow;
-		speed_left_final = speed_left + speed_diff;
-		speed_right_final = speed_right - speed_diff;
+		speed_left_tar = speed_left_base + speed_diff_l;
+		speed_right_tar = speed_right_base - speed_diff_r;
+		speed_left_final = pid_increment(&speed_pid_l,speed_left_tar,encoder_data_left,6000,s_kp,s_ki,s_kd);
+		speed_right_final = pid_increment(&speed_pid_r,speed_right_tar,encoder_data_right,6000,s_kp,s_ki,s_kd);
 		Motor_Left_SetSpeed((int16_t)speed_left_final);
-		Motor_Right_SetSpeed((int16_t)speed_right_final);		
+		Motor_Right_SetSpeed((int16_t)speed_right_final);
+	//并级速度和
+//		speed_left = pid_increment(&speed_pid_all , (speed_left_base + speed_right_base) , (encoder_data_left + encoder_data_right) , 6000 , s_kp , s_ki , s_kd) / 2;
+//		speed_right = speed_left;
+////		speed_left_final = speed_left + speed_diff_l - slow;
+////		speed_right_final = speed_right - speed_diff_r - slow;
+//		speed_left_final = speed_left + speed_diff;
+//		speed_right_final = speed_right - speed_diff;
+//		Motor_Left_SetSpeed((int16_t)speed_left_final);
+//		Motor_Right_SetSpeed((int16_t)speed_right_final);		
 	}
 	else
 	{

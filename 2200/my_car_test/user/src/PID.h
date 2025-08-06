@@ -5,7 +5,7 @@ extern float gyro_z,prev_d;
 // 位置式PID结构
 typedef struct 
 {
-    float Kp, Ki, Kd_d,Kd_a;
+    float Kp_2,Kp_1,Kp_0,Ki,Kd_d,Kd_a;
     float integral;  // 积分累计
     float prev_err;  // 上次误差
 		float prev_d;
@@ -27,7 +27,7 @@ typedef struct {
 } PID_INCREMENT_TypeDef;
 
 // 位置式PID初始化
-void PositionalPID_Init(PositionalPID* pid, float Kp, float Ki, float Kd_d,float Kd_a);
+void PositionalPID_Init(PositionalPID* pid,float Kp_2,float Kp_1,float Kp_0,float Ki,float Kd_d,float Kd_a);
 // 增量式PID初始化
 void IncrementalPID_Init(IncrementalPID* pid, float Kp, float Ki, float Kd);
 

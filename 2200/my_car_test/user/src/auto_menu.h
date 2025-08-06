@@ -17,7 +17,7 @@
 #define MAP_INIT_END		(0x01<<1)
 
 
-#define SON_NUM				(8)  //推荐为2的整数倍
+#define SON_NUM				(10)  //推荐为2的整数倍
 
 
 
@@ -136,7 +136,7 @@ void Flash_Read();
 void Flash_Write();
 void Flash_Erase();
 
-extern float p_kp,p_ki,p_kd_a,p_kd_d;
+extern float p_kp_2,p_kp_1,p_kp_0,p_ki,p_kd_a,p_kd_d;
 extern float s_kp,s_ki,s_kd;
 extern int speed_base; 
 extern int start_flag;

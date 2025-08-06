@@ -7,8 +7,11 @@
 
 float gyro_z = 0,prev_d = 0;
 // 位置式PID初始化
-void PositionalPID_Init(PositionalPID* pid, float Kp, float Ki, float Kd_d,float Kd_a) {
-    pid->Kp = Kp;
+void PositionalPID_Init(PositionalPID* pid,float Kp_2,float Kp_1,float Kp_0,float Ki,float Kd_d,float Kd_a) 
+{
+		pid->Kp_2 = Kp_2;
+	  pid->Kp_1 = Kp_1;
+    pid->Kp_0 = Kp_0;
     pid->Ki = Ki;
     pid->Kd_d = Kd_d;
 		pid->Kd_a = Kd_a;
@@ -46,13 +49,13 @@ float PositionalPID_Update(PositionalPID* pid, float target, float current)
 			float derivative = err - pid->prev_err;
 
 			// PID输出计算
-			float output = pid->Kp * err 
-									+ pid->Ki * pid->integral 
-									+ (1 - 0.3) * ( pid->Kd_a * (- mpu6050_gyro_z) / 1000 + pid->Kd_d * derivative ) + 0.3 * pid->prev_d;
+			float output = pid->Kp_2 * err * err + pid->Kp_1 * err + pid->Kp_0
+										+ pid->Ki * pid->integral 
+										+ (1 - 0.1) * ( pid->Kd_a * (- mpu6050_gyro_z) / 1000 + pid->Kd_d * derivative ) + 0.1 * pid->prev_d;
 			
 			// 更新历史误差
 			pid->prev_err = err;
-			pid->prev_d = (1 - 0.3) * ( pid->Kd_a * (- mpu6050_gyro_z) / 1000 + pid->Kd_d * derivative ) + 0.3 * pid->prev_d;
+			pid->prev_d = (1 - 0.1) * ( pid->Kd_a * (- mpu6050_gyro_z) / 1000 + pid->Kd_d * derivative ) + 0.1 * pid->prev_d;
 							
 			if(output > 7000)output = 7000;
 			if(output < -7000)output = -7000;			
