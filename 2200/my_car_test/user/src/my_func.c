@@ -49,13 +49,12 @@ void Update_Line(const uint8_t *image)
 	Search_Reference_Col(image);
 	Search_Line(image);
 	straight_up();
-	if(cross_flag == 0 && obstacle_flag == 0)circle_state();
+//	if(cross_flag == 0 && obstacle_flag == 0)circle_state();
 	if(cross_more_flag)
 	{
 		if(circle_flag == 0 && obstacle_flag == 0)cross_analysis();
 	}
-	Find_obstacle();
-	
+//	Find_obstacle();
 	if(island_temp_flag == 2 || island_temp_flag == 4)
 	{
 		Connect_Circle_In();
@@ -95,14 +94,13 @@ void Update_Line(const uint8_t *image)
 			center_line[i]=(left_edge_line[i] + right_edge_line[i])/2;
 		}
 	}
-	if(obstacle_flag == 1)
-	{
-		for(int i = 0; i < SEARCH_IMAGE_H;i++)
-		{
-			center_line[i] = center_line[i] + 20;
-		}
-	}
-	
+//	if(obstacle_flag == 1)
+//	{
+//		for(int i = 0; i < SEARCH_IMAGE_H;i++)
+//		{
+//			center_line[i] = center_line[i] + 20;
+//		}
+//	}
 		for(int i = 0; i < SEARCH_IMAGE_H;i++)     //防止越界
 		{
 			if(center_line[i] > 188)center_line[i] = 188;
@@ -119,7 +117,8 @@ void Update_Line(const uint8_t *image)
 	banmaxian_stop(image);
 	image_calculate_prospect(image);
 	Find_Edge_At_Reference_Col(image);
-	get_center_weight();
+//	get_center_weight();
+	get_center_average();
 }
 
 void if_mt9v03x_init()							  //摄像头初始化
@@ -165,6 +164,10 @@ void ips_show_mt9v03x(uint8_t *image_buffer)
 //						ips200_draw_point(right_edge_line[i],i,RGB565_BLUE);
 //						ips200_draw_point(center_line[i],i,RGB565_GREEN);
 //						ips200_draw_point(reference_col,i,RGB565_BROWN);							
+//					}
+//				for(uint16_t i=1;i<SEARCH_IMAGE_W;i++)
+//					{
+//						ips200_draw_point(i,top,RGB565_BROWN);								
 //					}
 					Image_Ready=0;
 				}

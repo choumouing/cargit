@@ -4,10 +4,10 @@
 #include "my_func.h"
 #include "zf_device_mpu6050.h"
 #include "globals.h"
+#include "auto_menu.h"
 #include "zf_common_function.h"
 
 #define STRETCH_NUM       80          //补线延伸长度
-//#include "auto_menu.h"
  
 int circle_flag = 0;
 uint8_t element_name = 0;
@@ -123,19 +123,17 @@ uint8_t find_circle_down_jump_point_left(uint8_t *arrary_value, uint8_t num0, ui
 	return 0;
 }
 
-void connect_point(uint8_t *arrary_value,uint8_t num0,uint8_t num1)
+void connect_point(uint8_t *array_value, uint8 num0, uint8 num1)
 {
-	float point_1 = (float)arrary_value[num0];
-	float point_2 = (float)arrary_value[num1];
-	float temp_slope = (point_2 - point_1) / (num0 - num1);
-	
-	for(int i = 0;i < (num0 - num1);i++)
-	{
-		arrary_value[num0 - i] = (int8_t)(temp_slope * i) + arrary_value[num0];
-	}
-	
-}
+    float point_1 = (float)array_value[num0];
+    float point_2 = (float)array_value[num1];
+    float temp_slope = (point_2 - point_1) / (num0 - num1);
 
+    for (int i = 0; i < (num0 - num1); i++)
+    {
+        array_value[num0 - i] = (int8)(temp_slope * i) + array_value[num0];
+    }
+}
 void calculate_half_way()
 {
 		for(int i = SEARCH_IMAGE_H-40;i>0;i--)
@@ -235,44 +233,53 @@ uint8 find_circle_point_left(uint8_t *edge_line,uint8 down_num,uint8 up_num,uint
 }
 void get_center_weight()
 {
-	if(island_temp_flag)
-	{
-		center_line_weight_buffer[0] = 0;
-		center_line_weight_buffer[1] = 0;
-		center_line_weight_buffer[2] = 1;
-		center_line_weight_buffer[3] = 3;
-		center_line_weight_buffer[4] = 5;
-		center_line_weight_buffer[5] = 9;
-		center_line_weight_buffer[6] = 5;
-		center_line_weight_buffer[7] = 3;
-		center_line_weight_buffer[8] = 1;
-		center_line_weight_buffer[9] = 0;		
-		center_line_weight_buffer[10] = 0;	
+//	if(island_temp_flag)
+//	{
+//		center_line_weight_buffer[0] = 0;
+//		center_line_weight_buffer[1] = 0;
+//		center_line_weight_buffer[2] = 1;
+//		center_line_weight_buffer[3] = 3;
+//		center_line_weight_buffer[4] = 5;
+//		center_line_weight_buffer[5] = 9;
+//		center_line_weight_buffer[6] = 5;
+//		center_line_weight_buffer[7] = 3;
+//		center_line_weight_buffer[8] = 1;
+//		center_line_weight_buffer[9] = 0;		
+//		center_line_weight_buffer[10] = 0;	
 
-	}
-	else
-	{					
+//	}
+//	else
+//	{					
 		memcpy(center_line_weight_buffer,center_line_weight,sizeof(center_line_weight));
-	}			
+//	}			
 				
-	for(int i = 0;i < 11;i++)
+	for(int i = 0;i < 120;i++)
 	{	
-			if((10+i*10) < top)
+			if(i < top)
 			{
 				center_line_weight_buffer[i] = 0;
 			}
 	}			
-	for(int i = 0;i < 11;i++)
+	for(int i = 0;i < 120;i++)
 	{
-		center_line_weight_temp += center_line_weight_buffer[i]*center_line[10+i*10];	
+		center_line_weight_temp += center_line_weight_buffer[i]*center_line[i];	
 		center_line_weight_count += center_line_weight_buffer[i];
 	}
-		center_line_weight_final = center_line_weight_temp / center_line_weight_count;		
+		center_line_weight_final = center_line_weight_temp / center_line_weight_count;	
 		center_line_weight_count = 0;
 		center_line_weight_temp = 0;
 
 
 }
+
+void get_center_average()
+{
+	int qianzhan_real = 0;
+	qianzhan_real = qianzhan;
+	if(qianzhan_real < top)qianzhan_real = top - 5;
+	center_line_weight_final = (center_line[qianzhan_real - 2] + center_line[qianzhan_real - 1] + center_line[qianzhan_real] + center_line[qianzhan_real + 1] + center_line[qianzhan_real + 2]) / 5;
+}
+
 
 void FindIsland_Ready_Right()
 {
@@ -467,48 +474,48 @@ void circle_state()
 
 void Connect_Cross_Ready(uint8_t *arrary_value1,uint8_t *arrary_value2)
 {
-		int16_t left_start_point = 0,left_end_point = 0,right_start_point = 0,right_end_point = 0;
-		float temp_slope = 0;
-	
-		left_start_point = find_jump_point(arrary_value1,100,20,CROSSJUMPTHRESHOLD,1) + 5;
-		left_end_point = find_jump_point(arrary_value1,100,20,CROSSJUMPTHRESHOLD,0) - 5;	
-		if((arrary_value1[left_end_point] - arrary_value1[left_start_point]) < 5)left_nomal_flag = 1;
-//		end_point = find_jump_point(arrary_value1,start_point - 10,20,CROSSJUMPTHRESHOLD,1) - 5;
+//		int16_t left_start_point = 0,left_end_point = 0,right_start_point = 0,right_end_point = 0;
+//		float temp_slope = 0;
+//	
+//		left_start_point = find_jump_point(arrary_value1,100,20,CROSSJUMPTHRESHOLD,1) + 5;
+//		left_end_point = find_jump_point(arrary_value1,100,20,CROSSJUMPTHRESHOLD,0) - 5;	
+//		if((arrary_value1[left_end_point] - arrary_value1[left_start_point]) < 5)left_nomal_flag = 1;
+////		end_point = find_jump_point(arrary_value1,start_point - 10,20,CROSSJUMPTHRESHOLD,1) - 5;
 
-		test_data2 = left_start_point - 5;
-		test_data3 = left_end_point + 5;
+//		test_data2 = left_start_point - 5;
+//		test_data3 = left_end_point + 5;
 
-		right_start_point = find_jump_point(arrary_value2,100,20,CROSSJUMPTHRESHOLD,1) + 5;
-		right_end_point = find_jump_point(arrary_value2,100,20,CROSSJUMPTHRESHOLD,0) - 5;
-		if((arrary_value1[right_start_point] - arrary_value1[right_end_point]) < 5)right_nomal_flag = 1;
-//		end_point = find_jump_point(arrary_value2,start_point,CROSSDOWNEDGE,CROSSJUMPTHRESHOLD,1);
-		if(left_nomal_flag && right_nomal_flag)
-		{
-			connect_point(arrary_value1,left_start_point,left_end_point);
-			connect_point(arrary_value2,right_start_point,right_end_point);	
-		}
-		else if(left_nomal_flag && !right_nomal_flag)
-		{
-			connect_point(arrary_value1,left_start_point,left_end_point);		
-			temp_slope = ((float)arrary_value1[left_start_point] - (float)arrary_value1[left_end_point]) / (left_end_point - left_start_point);
-			for(int i = 0;i < (left_start_point - left_end_point);i++)
-			{
-				arrary_value2[left_start_point - i] = -(int8_t)((temp_slope) * i) + arrary_value2[left_start_point];
-				if(arrary_value2[left_start_point - i] >= 188)arrary_value2[left_start_point - i] = 188;
-				if(arrary_value2[left_start_point - i] <= 0)arrary_value2[left_start_point - i] = 0;
-			}			
-		}
-		else if(!left_nomal_flag && right_nomal_flag)
-		{
-			connect_point(arrary_value2,right_start_point,right_end_point);		
-			temp_slope = ((float)arrary_value2[right_start_point] - (float)arrary_value1[right_end_point]) / (right_end_point - right_start_point);
-			for(int i = 0;i < (right_start_point - right_end_point);i++)
-			{
-				arrary_value1[right_start_point - i] = -(int8_t)((temp_slope) * i) + arrary_value1[right_start_point];
-				if(arrary_value1[right_start_point - i] >= 188)arrary_value1[right_start_point - i] = 188;
-				if(arrary_value1[right_start_point - i] <= 0)arrary_value1[right_start_point - i] = 0;
-			}					
-		}
+//		right_start_point = find_jump_point(arrary_value2,100,20,CROSSJUMPTHRESHOLD,1) + 5;
+//		right_end_point = find_jump_point(arrary_value2,100,20,CROSSJUMPTHRESHOLD,0) - 5;
+//		if((arrary_value1[right_start_point] - arrary_value1[right_end_point]) < 5)right_nomal_flag = 1;
+////		end_point = find_jump_point(arrary_value2,start_point,CROSSDOWNEDGE,CROSSJUMPTHRESHOLD,1);
+//		if(left_nomal_flag && right_nomal_flag)
+//		{
+//			connect_point(arrary_value1,left_start_point,left_end_point);
+//			connect_point(arrary_value2,right_start_point,right_end_point);	
+//		}
+//		else if(left_nomal_flag && !right_nomal_flag)
+//		{
+//			connect_point(arrary_value1,left_start_point,left_end_point);		
+//			temp_slope = ((float)arrary_value1[left_start_point] - (float)arrary_value1[left_end_point]) / (left_end_point - left_start_point);
+//			for(int i = 0;i < (left_start_point - left_end_point);i++)
+//			{
+//				arrary_value2[left_start_point - i] = -(int8_t)((temp_slope) * i) + arrary_value2[left_start_point];
+//				if(arrary_value2[left_start_point - i] >= 188)arrary_value2[left_start_point - i] = 188;
+//				if(arrary_value2[left_start_point - i] <= 0)arrary_value2[left_start_point - i] = 0;
+//			}			
+//		}
+//		else if(!left_nomal_flag && right_nomal_flag)
+//		{
+//			connect_point(arrary_value2,right_start_point,right_end_point);		
+//			temp_slope = ((float)arrary_value2[right_start_point] - (float)arrary_value1[right_end_point]) / (right_end_point - right_start_point);
+//			for(int i = 0;i < (right_start_point - right_end_point);i++)
+//			{
+//				arrary_value1[right_start_point - i] = -(int8_t)((temp_slope) * i) + arrary_value1[right_start_point];
+//				if(arrary_value1[right_start_point - i] >= 188)arrary_value1[right_start_point - i] = 188;
+//				if(arrary_value1[right_start_point - i] <= 0)arrary_value1[right_start_point - i] = 0;
+//			}					
+//		}
 }
 
 void Connect_Cross_In(uint8_t *arrary_value1,uint8_t *arrary_value2)
@@ -534,135 +541,181 @@ void Connect_Cross_In(uint8_t *arrary_value1,uint8_t *arrary_value2)
 		}
 }
 
-void stretch_point(uint8 *array_value, uint8 num, uint8 direction)
+void stretch_point(uint8_t *array_value, uint8 num ,uint8 direction)
 {
-    if((num + 5 >= SEARCH_IMAGE_H) || (num - 5 <= 0))
-        return;
-    
-    float temp_slope = 0;
+	
+	//direction为1是向上延伸，0是向下延伸
+	if((num+5>=SEARCH_IMAGE_H) ||(num-5<=0))
+		return;
+	
+	float temp_slope = 0;
     float point_1 = (float)array_value[num];
+	
+	if(direction){
+		float point_2 = (float)array_value[num+5];
+		temp_slope = (point_1 - point_2) / 5;
+		for (int i = 0; i < STRETCH_NUM&& num-i>=5; i++)
+		{
+			array_value[num - i] = func_limit_ab((int8)(temp_slope * i) + array_value[num],0,SEARCH_IMAGE_W-1);
+		}
+	}
+	else{
+		float point_2 = (float)array_value[num-5];
+		temp_slope = (point_1 - point_2) / 5;
+		for (int i = 0; i < STRETCH_NUM&& num+i<=SEARCH_IMAGE_H-1; i++)
+		{
+			array_value[num + i] = func_limit_ab((int8)(temp_slope * i) + array_value[num],0,SEARCH_IMAGE_W-1);
+		}
+	}
+	
+
     
-    if(direction){
-        float point_2 = (float)array_value[num + 5];
-        temp_slope = (point_1 - point_2) / 5;
-        for(int i = 0; i < STRETCH_NUM && num - i >= 5; i++){
-            array_value[num - i] = func_limit_ab((int8)(temp_slope * i) + array_value[num], 0, SEARCH_IMAGE_W - 1);
-        }
-    }
-    else{
-        float point_2 = (float)array_value[num - 5];
-        temp_slope = (point_1 - point_2) / 5;
-        for(int i = 0; i < STRETCH_NUM && num + i <= SEARCH_IMAGE_H - 1; i++){
-            array_value[num + i] = func_limit_ab((int8)(temp_slope * i) + array_value[num], 0, SEARCH_IMAGE_W - 1);
-        }
-    }
 }
 
 uint8 find_right_jump_point(uint8 down_num, uint8 up_num, uint8 model)
 {
-    uint8 temp_jump_point = 0;
-    
-    if(model){
-        temp_jump_point = down_num;
-        for(int i = 0; i < down_num - up_num; i++){
-            if(right_edge_line[down_num - i] - right_edge_line[down_num - i - 5] <= -8 &&
-               right_edge_line[down_num - i] - right_edge_line[down_num - i - 6] <= -8 &&
-               right_edge_line[down_num - i] - right_edge_line[down_num - i - 7] <= -8){
-                temp_jump_point = (uint8)(down_num - i) + 3;
-                return temp_jump_point;
-            }
-        }
-    }
-    else{
-        temp_jump_point = up_num;
-        for(int i = 0; i < down_num - up_num; i++){
-            if(right_edge_line[up_num + i] - right_edge_line[up_num + i + 5] <= -8 &&
-               right_edge_line[up_num + i] - right_edge_line[up_num + i + 6] <= -8 &&
-               right_edge_line[up_num + i] - right_edge_line[up_num + i + 7] <= -8){
-                temp_jump_point = (uint8)(up_num + i) - 3;
-                return temp_jump_point;
-            }
-        }
-    }
-    return 0;
+	//down_num 是下端起始点 up_num 是上端终止点,model为1时从下到上 为0时从上到下
+	uint8 temp_jump_point = 0;
+	uint8 temp_data;
+	
+	if(model){
+		temp_jump_point = down_num;
+		for(int i = 0;i <down_num-up_num;i++){
+			if(
+				right_edge_line[down_num-i]-right_edge_line[down_num-i-5]<=-8&&
+				right_edge_line[down_num-i]-right_edge_line[down_num-i-6]<=-8&&
+				right_edge_line[down_num-i]-right_edge_line[down_num-i-7]<=-8
+			&&
+				func_abs(right_edge_line[down_num-i]-right_edge_line[down_num-i+1])<=7&&
+				func_abs(right_edge_line[down_num-i]-right_edge_line[down_num-i+2])<=10&&
+				func_abs(right_edge_line[down_num-i]-right_edge_line[down_num-i+3])<=15
+			){
+				temp_jump_point = (uint8)(down_num-i)+3;
+				return temp_jump_point;
+			}
+		}
+	}
+	else{
+		temp_jump_point = up_num;
+		for(int i = 0;i <down_num-up_num;i++){
+			if(
+				right_edge_line[up_num+i]-right_edge_line[up_num+i+5]<=-8&&
+				right_edge_line[up_num+i]-right_edge_line[up_num+i+6]<=-8&&
+				right_edge_line[up_num+i]-right_edge_line[up_num+i+7]<=-8
+			&&
+				func_abs(right_edge_line[up_num+i]-right_edge_line[up_num+i+1])<=7&&
+				func_abs(right_edge_line[up_num+i]-right_edge_line[up_num+i+2])<=10&&
+				func_abs(right_edge_line[up_num+i]-right_edge_line[up_num+i+3])<=15
+			){
+				temp_jump_point = (uint8)(up_num+i)-3;
+				return temp_jump_point;
+			}
+		}
+	}
+	return 0;
 }
 
 uint8 find_left_jump_point(uint8 down_num, uint8 up_num, uint8 model)
 {
-    uint8 temp_jump_point = 0;
-    
-    if(model){
-        temp_jump_point = down_num;
-        for(int i = 0; i < down_num - up_num; i++){
-            if(left_edge_line[down_num - i] - left_edge_line[down_num - i - 5] >= 8 &&
-               left_edge_line[down_num - i] - left_edge_line[down_num - i - 6] >= 8 &&
-               left_edge_line[down_num - i] - left_edge_line[down_num - i - 7] >= 8){
-                temp_jump_point = (uint8)(down_num - i) + 3;
-                return temp_jump_point;
-            }
-        }
-    }
-    else{
-        temp_jump_point = up_num;
-        for(int i = 0; i < down_num - up_num; i++){
-            if(left_edge_line[up_num + i] - left_edge_line[up_num + i + 5] >= 8 &&
-               left_edge_line[up_num + i] - left_edge_line[up_num + i + 6] >= 8 &&
-               left_edge_line[up_num + i] - left_edge_line[up_num + i + 7] >= 8){
-                temp_jump_point = (uint8)(up_num + i) - 3;
-                return temp_jump_point;
-            }
-        }
-    }
-    return 0;
+	//down_num 是下端起始点 up_num 是上端终止点,model为1时从下到上 为0时从上到下
+	uint8 temp_jump_point = 0;
+	uint8 temp_data;
+	
+	if(model){
+		temp_jump_point = down_num;
+		for(int i = 0;i <down_num-up_num;i++){
+			if(
+				left_edge_line[down_num-i]-left_edge_line[down_num-i-5]>=8&&
+				left_edge_line[down_num-i]-left_edge_line[down_num-i-6]>=8&&
+				left_edge_line[down_num-i]-left_edge_line[down_num-i-7]>=8
+			&&
+				func_abs(left_edge_line[down_num-i]-left_edge_line[down_num-i+1])<=7&&
+				func_abs(left_edge_line[down_num-i]-left_edge_line[down_num-i+2])<=10&&
+				func_abs(left_edge_line[down_num-i]-left_edge_line[down_num-i+3])<=15
+			){
+				temp_jump_point = (uint8)(down_num-i)+3;
+				return temp_jump_point;
+			}
+		}
+	}
+	else{
+		temp_jump_point = up_num;
+		for(int i = 0;i <down_num-up_num;i++){
+			if(
+				left_edge_line[up_num+i]-left_edge_line[up_num+i+5]>=8&&
+				left_edge_line[up_num+i]-left_edge_line[up_num+i+6]>=8&&
+				left_edge_line[up_num+i]-left_edge_line[up_num+i+7]>=8
+			&&
+				func_abs(left_edge_line[up_num+i]-left_edge_line[up_num+i+1])<=7&&
+				func_abs(left_edge_line[up_num+i]-left_edge_line[up_num+i+2])<=10&&
+				func_abs(left_edge_line[up_num+i]-left_edge_line[up_num+i+3])<=15
+			){
+				temp_jump_point = (uint8)(up_num+i)-3;
+				return temp_jump_point;
+			}
+		}
+	}
+	return 0;
 }
 
 void cross_analysis(void)
 {
-    uint32 track_width = 0;
-    uint8 start_point = 0, end_point = 0;
-    
-    for(int i = (SEARCH_IMAGE_H * 2 / 3); i > (SEARCH_IMAGE_H / 3); i--)
-		{
-        track_width += (right_edge_line[i] - left_edge_line[i]);
-    }
-    
-    if(!cross_flag && track_width > (SEARCH_IMAGE_W * (SEARCH_IMAGE_H * 4 / 15))){
-        cross_flag = 1;
-    }
-    
-    if(cross_flag == 1)
-		{
-        start_point = find_left_jump_point(SEARCH_IMAGE_H - 5, SEARCH_IMAGE_H/4, 0);
-        end_point = find_left_jump_point(SEARCH_IMAGE_H - 5, SEARCH_IMAGE_H/3, 1);
-        
-        if(end_point && start_point){
-            connect_point(left_edge_line, end_point, start_point);
-        }
-        if(end_point & !start_point){
-            stretch_point(left_edge_line, end_point, 1);
-        }
-        if(!end_point && start_point){
-            stretch_point(left_edge_line, start_point, 0);
-        }
-        
-        start_point = find_right_jump_point(SEARCH_IMAGE_H - 5, SEARCH_IMAGE_H/4, 0);
-        end_point = find_right_jump_point(SEARCH_IMAGE_H - 5, SEARCH_IMAGE_H/3, 1);
-        
-        if(end_point && start_point){
-            connect_point(right_edge_line, end_point, start_point);
-        }
-        if(end_point && !start_point){
-            stretch_point(right_edge_line, end_point, 1);
-        }
-        if(!end_point && start_point){
-            stretch_point(right_edge_line, start_point, 0);
-        }
-        
-        if(track_width < (SEARCH_IMAGE_W * (SEARCH_IMAGE_H * 1 / 5)))
-				{
-            cross_flag = 0;
-        }
-    }
+	uint32 track_width = 0;
+	uint8 start_point = 0,end_point = 0;
+	for(int i = (SEARCH_IMAGE_H * 2 / 3);i >  (SEARCH_IMAGE_H / 3);i--){
+		track_width += (right_edge_line[i] - left_edge_line[i]);
+	}
+	
+	if(!cross_flag && track_width > (SEARCH_IMAGE_W * (SEARCH_IMAGE_H * 4 / 15))){
+		cross_flag = 1;
+	}
+	
+	if(cross_flag == 1){       //大片白色
+		start_point = 0;
+		end_point = 0;
+		start_point = find_left_jump_point(SEARCH_IMAGE_H - 5,SEARCH_IMAGE_H/4,0);
+		end_point = find_left_jump_point(SEARCH_IMAGE_H - 5,SEARCH_IMAGE_H/3,1);
+		if(end_point && start_point){
+			connect_point(left_edge_line,end_point,start_point);
+		}
+		if(end_point && !start_point){
+			stretch_point(left_edge_line,end_point,1);
+		}
+		if(!end_point && start_point){
+			stretch_point(left_edge_line,start_point,0);
+		}
+		
+		
+//		ips200_show_int(96,224,start_point,4);
+//		ips200_show_int(128,224,end_point,4);
+		
+		start_point = 0;
+		end_point = 0;
+		start_point = find_right_jump_point(SEARCH_IMAGE_H - 5,SEARCH_IMAGE_H/4,0);
+		end_point = find_right_jump_point(SEARCH_IMAGE_H - 5,SEARCH_IMAGE_H/3,1);
+		
+		if(end_point && start_point){
+			connect_point(right_edge_line,end_point,start_point);
+		}
+		if(end_point && !start_point){
+			stretch_point(right_edge_line,end_point,1);
+		}
+		if(!end_point && start_point){
+			stretch_point(right_edge_line,start_point,0);
+		}
+		
+//		ips200_show_int(96,240,start_point,4);
+//		ips200_show_int(128,240,end_point,4);
+
+		
+		if(track_width < (SEARCH_IMAGE_W * (SEARCH_IMAGE_H * 1 / 5))){
+			cross_flag = 0;
+		}
+		
+		
+		
+
+	}
 }
 
 void Connect_Circle_In()

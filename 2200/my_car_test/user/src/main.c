@@ -89,7 +89,7 @@ int main (void)
 	
 		Motor_Init(); 	
 		menu_init();
-	
+		mpu6050_init();
     ips200_init(IPS200_TYPE);
 		if_mt9v03x_init();
 
@@ -121,11 +121,15 @@ int main (void)
 		{
 
 				island_temp_flag = 0;
+				circle_flag = 0;
+				obstacle_flag = 0;
 				start_count = 0;
 				speed_left_tar = 0;
 				speed_right_tar = 0;
 		}
-			
+//			mpu6050_get_gyro();  // 更新数据
+//			mpu6050_gyro_z = mpu6050_gyro_z + 117;
+//			if(myabs(mpu6050_gyro_z) <= 5)mpu6050_gyro_z = 0;			
 //					ips200_show_int(0,170,center_line_weight_temp, 3);	
 //					ips200_show_int(0,170,element_name, 3);	
 //					ips200_show_int(0,200,test_data1, 3);				
@@ -140,12 +144,11 @@ int main (void)
 //					printf("speed_right \t\t%d .\r\n", encoder_data_right);
 //					printf("%d,%d\n", encoder_data_left,encoder_data_right); 							
 //				  printf("prospect \t\t%d .\r\n", prospect);			
-				ips200_show_int(0,200,island_temp_flag, 2);					
-				ips200_show_int(0,230,center_line_weight_final, 3);	
-				ips200_show_int(0,260,prospect, 5);		
-				ips200_show_int(0,290,speed_up, 3);	
-				printf("%d,%d\n",encoder_data_left,encoder_data_right); 	
-			  system_delay_ms(10);
+				ips200_show_int(0,200,center_line_weight_final, 3);					
+				ips200_show_int(0,230,top, 3);	
+				ips200_show_int(0,260,120 - prospect, 5);		
+//				ips200_show_int(0,290,mpu6050_gyro_z, 6);	
+//				printf("%d,%d\n",encoder_data_left,encoder_data_right); 	
     }
 		
 }
@@ -166,7 +169,7 @@ void pit_handler (void)
 }
 void pit7_handler (void)
 {
-	speed_diff = PositionalPID_Update(&position_pid,center_line_weight_final, 94);                    //位置PID的结果与速度差的关系
+	speed_diff = PositionalPID_Update(&position_pid,center_line_weight_final, 95);                    //位置PID的结果与速度差的关系
 	Get_Speed_Diff();
 	Get_Speed_Base();
 	if(start_flag == 1)
@@ -174,8 +177,8 @@ void pit7_handler (void)
 		//串级
 		speed_left_tar = speed_left_base + speed_diff_l;
 		speed_right_tar = speed_right_base - speed_diff_r;
-		speed_left_final = pid_increment(&speed_pid_l,speed_left_tar,encoder_data_left,6000,s_kp,s_ki,s_kd);
-		speed_right_final = pid_increment(&speed_pid_r,speed_right_tar,encoder_data_right,6000,s_kp,s_ki,s_kd);
+		speed_left_final = pid_increment(&speed_pid_l,speed_left_tar,encoder_data_left,7000,s_kp,s_ki,s_kd);
+		speed_right_final = pid_increment(&speed_pid_r,speed_right_tar,encoder_data_right,7000,s_kp,s_ki,s_kd);
 		Motor_Left_SetSpeed((int16_t)speed_left_final);
 		Motor_Right_SetSpeed((int16_t)speed_right_final);
 	//并级速度和
@@ -196,8 +199,8 @@ void pit7_handler (void)
 				speed_right_base = 0;
 				speed_left_tar = speed_left_base;
 				speed_right_tar = speed_right_base;
-			  speed_left_final = pid_increment(&speed_pid_l,speed_left_tar,encoder_data_left,6000,s_kp,s_ki,s_kd);
-				speed_right_final = pid_increment(&speed_pid_r,speed_right_tar,encoder_data_right,6000,s_kp,s_ki,s_kd);
+			  speed_left_final = pid_increment(&speed_pid_l,speed_left_tar,encoder_data_left,7000,s_kp,s_ki,s_kd);
+				speed_right_final = pid_increment(&speed_pid_r,speed_right_tar,encoder_data_right,7000,s_kp,s_ki,s_kd);
 //				speed_left_base = PositionalPID_Update(&speed_pid_l,speed_left_base,encoder_data_left);
 //				speed_right_base = PositionalPID_Update(&speed_pid_r,speed_right_base,encoder_data_right);
 		    Motor_Left_SetSpeed((int16_t)speed_left_final);			

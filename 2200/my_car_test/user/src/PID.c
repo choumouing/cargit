@@ -47,18 +47,27 @@ float PositionalPID_Update(PositionalPID* pid, float target, float current)
 		
 			// 微分项 (当前误差-上次误差)
 			float derivative = err - pid->prev_err;
-
+			
+			float output = 0;
 			// PID输出计算
-			float output = pid->Kp_2 * err * err + pid->Kp_1 * err + pid->Kp_0
+		if(err > 0)
+		{
+			output = pid->Kp_2 * err * err + pid->Kp_1 * err + pid->Kp_0
 										+ pid->Ki * pid->integral 
 										+ (1 - 0.1) * ( pid->Kd_a * (- mpu6050_gyro_z) / 1000 + pid->Kd_d * derivative ) + 0.1 * pid->prev_d;
-			
+		}
+		else
+		{
+			output = - pid->Kp_2 * err * err + pid->Kp_1 * err + pid->Kp_0
+										+ pid->Ki * pid->integral 
+										+ (1 - 0.1) * ( pid->Kd_a * (- mpu6050_gyro_z) / 1000 + pid->Kd_d * derivative ) + 0.1 * pid->prev_d;			
+		}
 			// 更新历史误差
 			pid->prev_err = err;
 			pid->prev_d = (1 - 0.1) * ( pid->Kd_a * (- mpu6050_gyro_z) / 1000 + pid->Kd_d * derivative ) + 0.1 * pid->prev_d;
 							
-			if(output > 7000)output = 7000;
-			if(output < -7000)output = -7000;			
+			if(output > 8000)output = 8000;
+			if(output < -8000)output = -8000;			
 			return output;
 	}
 

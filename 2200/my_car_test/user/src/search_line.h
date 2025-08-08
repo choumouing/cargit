@@ -32,8 +32,10 @@ extern char Image_Ready;
 extern uint8_t prospect,top;
 
 extern int16_t weight1,weight2,weight3,weight4,weight5,weight6,weight7,weight8,weight9,weight10,weight11;
-extern int16_t center_line_weight[11];
-extern int16_t center_line_weight_buffer[11];
+//extern int16_t center_line_weight[11];
+//extern int16_t center_line_weight_buffer[11];
+extern int16_t center_line_weight[120];
+extern int16_t center_line_weight_buffer[120];
 extern int32_t center_line_weight_temp;
 extern int32_t center_line_weight_count;
 extern int32_t center_line_weight_final;

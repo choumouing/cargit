@@ -1,6 +1,6 @@
 #ifndef _AUTO_MENU_H
 #define _AUTO_MENU_H
-#include "zf_common_headfile.h"
+
 
 //#define DEBUG_PRINTF
 #define _pid  struct controller
@@ -144,5 +144,6 @@ extern int slow_flag;
 extern int cross_more_flag;
 extern float chasu;
 extern float speed_beilv;
+extern int qianzhan;
 #endif
 

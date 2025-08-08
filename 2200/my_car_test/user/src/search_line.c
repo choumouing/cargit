@@ -37,8 +37,30 @@ int16_t weight1=0,weight2=0,weight3=0,weight4=0,weight5=0,weight6=0,weight7=0,we
 //int16_t center_line_weight[11] = {0,1,1,3,5,9,9,9,5,1,0};
 //int16_t center_line_weight[11] = {0,1,3,5,9,9,9,5,3,1,0};
 //int16_t center_line_weight[11] = {1,5,9,9,9,5,3,3,1,1,0};
-int16_t center_line_weight[11] = {1,5,9,5,1,1,1,1,1,1,0};
-int16_t center_line_weight_buffer[11] = {0};
+//int16_t center_line_weight[11] = {1,5,9,5,1,1,1,1,1,1,0};
+//int16_t center_line_weight[11] = {50,90,50,10,9,9,5,1,1,1,0};
+//int16_t center_line_weight[120] = {1 ,1 ,1 ,1 ,1 ,1 ,1 ,1 ,1 ,1 ,1 ,1 ,
+//																	 15,15,15,15,15,15,15,15,15,15,15,15,
+//																	 9 ,9 ,9 ,9 ,9 ,9 ,9 ,9 ,9 ,9 ,9 ,9 ,
+//                                   5 ,5 ,5 ,5 ,5 ,5 ,5 ,5 ,5 ,5 ,5 ,5 ,
+//																	 1 ,1 ,1 ,1 ,1 ,1 ,1 ,1 ,1 ,1 ,1 ,1 ,
+//																	 1 ,1 ,1 ,1 ,1 ,1 ,1 ,1 ,1 ,1 ,1 ,1 ,
+//																	 1 ,1 ,1 ,1 ,1 ,1 ,1 ,1 ,1 ,1 ,1 ,1 ,
+//																	 1 ,1 ,1 ,1 ,1 ,1 ,1 ,1 ,1 ,1 ,1 ,1 ,
+//																	 1 ,1 ,1 ,1 ,1 ,1 ,1 ,1 ,1 ,1 ,1 ,1 ,
+//																	 1 ,1 ,1 ,1 ,1 ,1 ,1 ,1 ,1 ,1 ,1 ,1 };
+int16_t center_line_weight[120] = {1 ,1 ,1 ,1 ,1 ,1 ,1 ,1 ,1 ,1 ,1 ,1 ,
+																	 9 ,9 ,9 ,9 ,9 ,9 ,9 ,9 ,9 ,9 ,9 ,9 ,
+																	 15,15,15,15,15,15,15,15,15,15,15,15,
+																	 9 ,9 ,9 ,9 ,9 ,9 ,9 ,9 ,9 ,9 ,9 ,9 ,
+																	 9 ,9 ,9 ,9 ,9 ,9 ,9 ,9 ,9 ,9 ,9 ,9 ,
+																	 9 ,9 ,9 ,9 ,9 ,9 ,9 ,9 ,9 ,9 ,9 ,9 ,
+																	 5 ,5 ,5 ,5 ,5 ,5 ,5 ,5 ,5 ,5 ,5 ,5 ,
+																	 1 ,1 ,1 ,1 ,1 ,1 ,1 ,1 ,1 ,1 ,1 ,1 ,
+																	 1 ,1 ,1 ,1 ,1 ,1 ,1 ,1 ,1 ,1 ,1 ,1 ,
+																	 1 ,1 ,1 ,1 ,1 ,1 ,1 ,1 ,1 ,1 ,1 ,1 };
+//int16_t center_line_weight_buffer[11] = {0};
+int16_t center_line_weight_buffer[120] = {0};
 int32_t center_line_weight_temp = 0;
 int32_t center_line_weight_count = 0;
 int32_t center_line_weight_final = 0;
@@ -327,38 +349,33 @@ void image_calculate_prospect(const uint8_t *image)
 
 void Find_Edge_At_Reference_Col(const uint8_t *image) 
 {
-    uint8_t row;  // 当前行
-    uint8_t temp1, temp2;  // 灰度值临时变量
-    int16_t temp3;  // 对比度计算结果
-    
-    // 从图像底部向上搜索到偏移量允许的最小行
-    for (row = SEARCH_IMAGE_H - 1; row >= CONTRASTOFFSET; row--) 
-    {
-        // 获取当前点和上方偏移点的灰度值
-        temp1 = *(image + row * SEARCH_IMAGE_W + reference_col);
-        temp2 = *(image + (row - CONTRASTOFFSET) * SEARCH_IMAGE_W + reference_col);
-        
-        // 情况1：当前点是白点（赛道内）
-        if (temp1 > white_max_point) 
-        {
-            // 继续向上搜索（仍在赛道内）
-            continue;
-        }
-        
-        // 情况2：当前点是黑点（背景）
-        if (temp1 < white_min_point) 
-        {
-            // 直接返回当前行作为边界点
-            top = row;
-        }
-        
-        // 情况3：计算对比度
-        temp3 = (temp1 - temp2) * 200 / (temp1 + temp2 + 1);  // +1防止除零
-        
-        // 满足对比度阈值条件
-        if (temp3 > reference_contrast_ratio) 
-        {
-            top = row;  // 返回当前行作为边界点
-        }
-    }
+	int col = reference_col;
+	int16 temp1 = 0,temp2 = 0,temp3 = 0;
+	for	(int row = SEARCH_IMAGE_H-1;row > CONTRASTOFFSET;row--)
+	{    
+		temp1 = *(image+row* SEARCH_IMAGE_W + col );
+		temp2 = *(image + (row-CONTRASTOFFSET) * SEARCH_IMAGE_W + col);
+		
+		if(row == 5)
+		{   //计算对比度
+			top = (uint8)row;
+			break;
+		}
+		
+		if(temp1 < white_min_point){           //当前点是黑点
+			top = (uint8)row;
+			break;
+		}
+		
+		if(temp2 > white_max_point){           //对比点是白点
+			continue;
+		}
+		
+		temp3 = (temp1 - temp2)*200/(temp1 + temp2);	
+		if(temp3 >reference_contrast_ratio )
+		{   //计算对比度
+			top = (uint8)row;
+			break;
+		}
+	}
 }
